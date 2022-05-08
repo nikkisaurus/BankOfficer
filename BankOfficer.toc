@@ -1,0 +1,11 @@
+## Interface: 90200
+## Title: Bank Officer
+## Notes: Tools to help guild bank officers maintain stock
+## Author: Nikketa-Hyjal (US)
+## Version: @project-version@
+## SavedVariables: BankOfficerDB
+
+Libs\lib.xml
+Locales\en-us.lua
+Core\embeds.xml
+BankOfficer.lua
