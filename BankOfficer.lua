@@ -4,7 +4,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 addon.PLAYER_ENTERING_WORLD = function()
 	addon.OptionsFrame:Show()
-	addon.OptionsFrame:GetUserData("children").optionsTree:SelectByPath(1)
+	--addon.OptionsFrame:GetUserData("children").optionsTree:SelectByPath(1)
 end
 
 local function EnableDebug()

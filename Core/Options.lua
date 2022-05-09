@@ -2,49 +2,46 @@ local addonName = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local function InventoryRuleExists()
-	return addon.db.global.guilds[(GetGuildInfo("player"))].tabsPurchased
+local function GetGuilds()
+	local rules = {}
+	for guildKey, guild in pairs(addon.db.global.guilds) do
+		rules[guildKey] = guildKey
+	end
+	return rules
 end
 
 local function GetOptionsTree()
 	local tree = {}
 	for i = 1, MAX_GUILDBANK_TABS do
-		local disable = i > (InventoryRuleExists() or 0)
-
+		local tabsPurchased = addon.GetGuild().tabsPurchased
+		local disable = i > tabsPurchased
 		tinsert(tree, {
 			value = i,
 			text = L.Tab(i),
 			disabled = disable,
 		})
 	end
+
+	tinsert(tree, {
+		value = "settings",
+		text = L["Settings"],
+	})
+
 	return tree
 end
 
-local function GetGroupContent(optionsTree, _, tabID)
+local function GetTabContent(optionsTree, _, tabID)
 	optionsTree:ReleaseChildren()
 
-	if tabID <= (InventoryRuleExists() or 0) then
+	if tabID <= 8 then --! FIX
 		for y = 1, 7 do
 			for x = 1, 14 do
 				addon.GetOptionsTabSlot(optionsTree)
 			end
 		end
-	elseif tabID <= 8 then
-		optionsTree:ReleaseChildren()
 	else
 		--Settings
 	end
-end
-
-local function SetDisabled(disable)
-	local children = addon.OptionsFrame:GetUserData("children")
-	children.addInventoryRuleButton:SetDisabled(disable)
-	children.optionsTree:SetTree(GetOptionsTree())
-end
-
-local function AddInventoryRule(addInventoryRuleButton)
-	addon.db.global.guilds[(GetGuildInfo("player"))].tabsPurchased = GetNumGuildBankTabs()
-	SetDisabled(true)
 end
 
 local function AddChild(childName, child)
@@ -61,22 +58,22 @@ addon.InitializeOptions = function()
 	optionsContainer:SetWidth(800)
 	optionsContainer:SetHeight(400)
 	optionsContainer:SetUserData("children", {})
+	optionsContainer:Hide()
 
-	local addInventoryRuleButton = AceGUI:Create("Button")
-	addInventoryRuleButton:SetText(L["Add Rule"])
-	addInventoryRuleButton:SetCallback("OnClick", AddInventoryRule)
+	local selectRuleButton = AceGUI:Create("Dropdown")
+	selectRuleButton:SetList(GetGuilds())
+	selectRuleButton:SetValue(addon.GetGuildKey())
 
 	local optionsTree = AceGUI:Create("TreeGroup")
 	optionsTree:SetLayout("Flow")
 	optionsTree:SetFullHeight(true)
 	optionsTree:SetFullWidth(true)
 	optionsTree:SetTree(GetOptionsTree())
-	optionsTree:SetCallback("OnGroupSelected", GetGroupContent)
+	--optionsTree:SetCallback("OnGroupSelected", GetTabContent)
 
 	addon.OptionsFrame = optionsContainer
-	AddChild("addInventoryRuleButton", addInventoryRuleButton)
+	AddChild("selectRuleButton", selectRuleButton)
 	AddChild("optionsTree", optionsTree)
-	SetDisabled(InventoryRuleExists())
 end
 
 addon.HandleSlashCommand = function()
