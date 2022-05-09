@@ -106,15 +106,12 @@ local function frame_onClick(frame, mouseButton)
 		end
 	elseif mouseButton == "RightButton" then
 		if IsShiftKeyDown() then
-			local slotInfo = {
-				itemID = false,
-				stack = [[function()
-                    return 1
-                end]],
-			}
 			local tabID, slotKey = widget:GetUserData("tabID"), widget:GetUserData("slotKey")
-			addon.GetGuild().tabs[tabID].slots[slotKey] = slotInfo
-			widget:SetSlotData(tabID, slotKey, slotInfo)
+			addon.GetGuild().tabs[tabID].slots[slotKey].itemID = false
+			addon.GetGuild().tabs[tabID].slots[slotKey].stack = [[function()
+                return 1
+            end]]
+			widget:SetSlotData(tabID, slotKey, addon.GetGuild().tabs[tabID].slots[slotKey])
 		else
 			print("Edit") --TODO
 		end
