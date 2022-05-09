@@ -21,7 +21,7 @@ local keys = {
 local function GetOptionsTree()
 	local tree = {}
 	for i = 1, MAX_GUILDBANK_TABS do
-		local disable = i > addon.GetGuild().tabsPurchased
+		local disable = not addon.GetGuild().tabsPurchased or i > addon.GetGuild().tabsPurchased
 		tinsert(tree, {
 			value = i,
 			text = L.Tab(i),
@@ -40,7 +40,7 @@ end
 local function GetTabContent(optionsTree, _, tabID)
 	optionsTree:ReleaseChildren()
 
-	if tabID <= addon.GetGuild().tabsPurchased then
+	if addon.GetGuild().tabsPurchased and tabID <= addon.GetGuild().tabsPurchased then
 		for row = 1, 7 do
 			for col = 1, 14 do
 				addon.OptionsFrame:SetUserData("selectedTabID", tabID)

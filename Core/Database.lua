@@ -31,6 +31,7 @@ addon.InitializeDatabase = function()
 
 	C_Timer.After(1, function()
 		addon.db.global.guilds[guildKey].tabsPurchased = GetNumGuildBankTabs()
+		addon.InitializeOptions()
 	end)
 end
 

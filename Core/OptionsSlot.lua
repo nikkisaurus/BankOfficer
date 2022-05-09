@@ -7,27 +7,61 @@ local Version = 1
 
 local AceGUI = LibStub("AceGUI-3.0")
 
+local scanner = CreateFrame("GameTooltip", "BankOfficerScanner", UIParent, "GameTooltipTemplate")
+scanner:SetOwner(WorldFrame, "ANCHOR_NONE")
+local function IsSoulbound(itemID)
+	local itemName, itemLink, itemQuality, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, sellPrice, classID, subclassID, bindType, expacID, setID, isCraftingReagent =
+		GetItemInfo(
+			itemID
+		)
+
+	scanner:ClearLines()
+	scanner:SetHyperlink(itemLink)
+	for i = 1, scanner:NumLines() do
+		scanner:AddFontStrings(
+			scanner:CreateFontString("$parentTextLeft" .. i, nil, "GameTooltipText"),
+			scanner:CreateFontString("$parentTextRight" .. i, nil, "GameTooltipText")
+		)
+
+		if _G["BankOfficerScannerTextLeft" .. i]:GetText() == ITEM_BIND_ON_PICKUP then
+			return true
+		end
+	end
+end
+
 local function AddSlotItem(widget)
 	local cursorType, itemID = GetCursorInfo()
 	ClearCursor()
 
-	if cursorType == "item" and itemID then
-		addon.GetGuild().tabs[widget:GetUserData("tabID")].slots[widget:GetUserData("slotKey")].itemID = itemID
-		widget:SetItem(itemID)
-	end
+	addon.CacheItem(itemID, function(widget, cursorType, itemID)
+		if cursorType == "item" and itemID and not IsSoulbound(itemID) then
+			addon.GetGuild().tabs[widget:GetUserData("tabID")].slots[widget:GetUserData("slotKey")].itemID = itemID
+			widget:SetItem(itemID)
+		end
+	end, widget, cursorType, itemID)
 end
 
 local function frame_onClick(frame, mouseButton)
 	local widget = frame.obj
+	local isMoving = addon.OptionsFrame:GetUserData("isMoving")
 
 	if mouseButton == "LeftButton" then
-		if not widget:GetUserData("slotInfo").itemID then
-			AddSlotItem(widget)
+		if widget:GetUserData("slotInfo").itemID then
+			if isMoving then
+				print("Swap items") --TODO
+				addon.OptionsFrame:SetUserData("isMoving")
+			else
+				print("Starting move") --TODO
+				addon.OptionsFrame:SetUserData("isMoving", true)
+			end
+		elseif isMoving then
+			print("Move item") --TODO
+			addon.OptionsFrame:SetUserData("isMoving")
 		else
-			print("Move")
+			AddSlotItem(widget)
 		end
 	elseif mouseButton == "RightButton" then
-		print("Edit")
+		print("Edit") --TODO
 	end
 end
 
