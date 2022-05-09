@@ -10,11 +10,18 @@ local function GetGuilds()
 	return rules
 end
 
+local function SetSelectedRule(rule)
+	addon.OptionsFrame:SetUserData("selected", rule)
+end
+
+local keys = {
+	settings = MAX_GUILDBANK_TABS + 1,
+}
+
 local function GetOptionsTree()
 	local tree = {}
 	for i = 1, MAX_GUILDBANK_TABS do
-		local tabsPurchased = addon.GetGuild().tabsPurchased
-		local disable = i > tabsPurchased
+		local disable = i > addon.GetGuild().tabsPurchased
 		tinsert(tree, {
 			value = i,
 			text = L.Tab(i),
@@ -23,7 +30,7 @@ local function GetOptionsTree()
 	end
 
 	tinsert(tree, {
-		value = "settings",
+		value = keys.settings,
 		text = L["Settings"],
 	})
 
@@ -33,14 +40,15 @@ end
 local function GetTabContent(optionsTree, _, tabID)
 	optionsTree:ReleaseChildren()
 
-	if tabID <= 8 then --! FIX
-		for y = 1, 7 do
-			for x = 1, 14 do
-				addon.GetOptionsTabSlot(optionsTree)
+	if tabID <= addon.GetGuild().tabsPurchased then
+		for row = 1, 7 do
+			for col = 1, 14 do
+				addon.OptionsFrame:SetUserData("selectedTabID", tabID)
+				addon.GetOptionsTabSlot(optionsTree, row, col)
 			end
 		end
-	else
-		--Settings
+	elseif tabID == keys.settings then
+		--TODO Settings
 	end
 end
 
@@ -55,23 +63,24 @@ addon.InitializeOptions = function()
 	optionsContainer:SetTitle(L[addonName])
 	optionsContainer:SetLayout("Flow")
 	optionsContainer:EnableResize(false)
-	optionsContainer:SetWidth(800)
-	optionsContainer:SetHeight(400)
+	optionsContainer:SetWidth(825)
+	optionsContainer:SetHeight(412)
 	optionsContainer:SetUserData("children", {})
 	optionsContainer:Hide()
+	addon.OptionsFrame = optionsContainer
 
 	local selectRuleButton = AceGUI:Create("Dropdown")
 	selectRuleButton:SetList(GetGuilds())
 	selectRuleButton:SetValue(addon.GetGuildKey())
+	selectRuleButton:SetCallback("OnValueChanged", SetSelectedRule(value))
 
 	local optionsTree = AceGUI:Create("TreeGroup")
 	optionsTree:SetLayout("Flow")
 	optionsTree:SetFullHeight(true)
 	optionsTree:SetFullWidth(true)
 	optionsTree:SetTree(GetOptionsTree())
-	--optionsTree:SetCallback("OnGroupSelected", GetTabContent)
+	optionsTree:SetCallback("OnGroupSelected", GetTabContent)
 
-	addon.OptionsFrame = optionsContainer
 	AddChild("selectRuleButton", selectRuleButton)
 	AddChild("optionsTree", optionsTree)
 end

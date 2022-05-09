@@ -14,14 +14,10 @@ addon.InitializeDatabase = function()
 						["*"] = {
 							slots = {
 								["*"] = {
-									col = 0,
-									row = 0,
-									item = {
-										itemID = false,
-										minQty = 1,
-										maxQty = 20,
-										restock = false, --min, max, false
-									},
+									itemID = false,
+									stack = [[function()
+										return 1
+									end]],
 								},
 							},
 						},
