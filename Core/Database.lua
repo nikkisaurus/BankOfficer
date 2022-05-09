@@ -3,6 +3,9 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 addon.InitializeDatabase = function()
+	local stack = [[function()
+    return 1
+end]]
 	addon.db = LibStub("AceDB-3.0"):New("BankOfficerDB", {
 		global = {
 			settings = {},
@@ -15,9 +18,7 @@ addon.InitializeDatabase = function()
 							slots = {
 								["*"] = {
 									itemID = false,
-									stack = [[function()
-										return 1
-									end]],
+									stack = stack,
 								},
 							},
 						},

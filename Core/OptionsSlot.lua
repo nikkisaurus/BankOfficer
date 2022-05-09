@@ -41,6 +41,40 @@ local function AddSlotItem(widget)
 	end
 end
 
+local function EditSlot(tabID, slotKey, slotInfo)
+	local optionsTree = addon.OptionsFrame:GetUserData("children").optionsTree
+	optionsTree:ReleaseChildren()
+
+	local icon = AceGUI:Create("Icon")
+	icon:SetImage(GetItemIcon(slotInfo.itemID))
+	icon:SetImageSize(40, 40)
+	icon:SetWidth(40)
+	icon:SetHeight(40)
+	optionsTree:AddChild(icon)
+
+	local name = GetItemInfo(slotInfo.itemID)
+	local label = AceGUI:Create("Label")
+	label:SetText(format("%s\n%d.%s", name, tabID, slotKey))
+	optionsTree:AddChild(label)
+
+	local stackEditBox = AceGUI:Create("MultiLineEditBox")
+	stackEditBox:SetText(slotInfo.stack)
+	stackEditBox:SetLabel(L["Stack"])
+	stackEditBox:SetFullWidth(true)
+	optionsTree:AddChild(stackEditBox)
+	stackEditBox:SetCallback("OnEnterPressed", function(_, _, stack)
+		addon.GetGuild().tabs[tabID].slots[slotKey].stack = stack
+		optionsTree:SelectByValue(tabID)
+	end)
+
+	local backButton = AceGUI:Create("Button")
+	backButton:SetText(BACK)
+	optionsTree:AddChild(backButton)
+	backButton:SetCallback("OnClick", function()
+		optionsTree:SelectByValue(tabID)
+	end)
+end
+
 local function moveFrame_OnUpdate(frame)
 	if frame:IsVisible() then
 		local scale, x, y = frame:GetEffectiveScale(), GetCursorPosition()
@@ -69,18 +103,23 @@ local function MoveItem(target)
 	}
 	target:SetSlotData(sourceTabID, sourceSlotKey, sourceSlotInfo)
 
-	addon.GetGuild().tabs[sourceTabID].slots[sourceSlotKey] = {
-		itemID = targetSlotInfo.itemID,
-		stack = targetSlotInfo.stack,
-	}
-	source:SetSlotData(targetTabID, targetSlotKey, targetSlotInfo)
+	if not addon.OptionsFrame:GetUserData("duplicate") then
+		addon.GetGuild().tabs[sourceTabID].slots[sourceSlotKey] = {
+			itemID = targetSlotInfo.itemID,
+			stack = targetSlotInfo.stack,
+		}
+		source:SetSlotData(targetTabID, targetSlotKey, targetSlotInfo)
+	else
+		addon.OptionsFrame:SetUserData("duplicate")
+	end
 
 	addon.OptionsFrame:SetUserData("isMoving")
 	moveFrame:Hide()
 end
 
-local function StartMoving(widget)
+local function StartMoving(widget, duplicate)
 	addon.OptionsFrame:SetUserData("isMoving", widget)
+	addon.OptionsFrame:SetUserData("duplicate", duplicate)
 	moveFrame:Show()
 	moveFrameTexture:SetTexture(GetItemIcon(widget:GetUserData("slotInfo").itemID))
 end
@@ -88,16 +127,19 @@ end
 local function frame_onClick(frame, mouseButton)
 	local widget = frame.obj
 	local isMoving = addon.OptionsFrame:GetUserData("isMoving")
+	local tabID, slotKey, slotInfo =
+		widget:GetUserData("tabID"), widget:GetUserData("slotKey"), widget:GetUserData("slotInfo")
+	local itemID = slotInfo.itemID
 
 	if mouseButton == "LeftButton" then
-		if widget:GetUserData("slotInfo").itemID then
+		if itemID then
 			local cursorType, itemID = GetCursorInfo()
 			if isMoving then
 				MoveItem(widget)
 			elseif cursorType == "item" and itemID then
 				AddSlotItem(widget)
 			else
-				StartMoving(widget)
+				StartMoving(widget, IsControlKeyDown())
 			end
 		elseif isMoving then
 			MoveItem(widget)
@@ -106,14 +148,13 @@ local function frame_onClick(frame, mouseButton)
 		end
 	elseif mouseButton == "RightButton" then
 		if IsShiftKeyDown() then
-			local tabID, slotKey = widget:GetUserData("tabID"), widget:GetUserData("slotKey")
 			addon.GetGuild().tabs[tabID].slots[slotKey].itemID = false
 			addon.GetGuild().tabs[tabID].slots[slotKey].stack = [[function()
                 return 1
             end]]
 			widget:SetSlotData(tabID, slotKey, addon.GetGuild().tabs[tabID].slots[slotKey])
-		else
-			print("Edit") --TODO
+		elseif itemID then
+			addon.CacheItem(itemID, EditSlot, tabID, slotKey, slotInfo)
 		end
 	end
 end

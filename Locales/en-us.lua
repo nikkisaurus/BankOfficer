@@ -4,8 +4,7 @@ local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
 LibStub("LibAddonUtils-1.0"):Embed(addon)
 
 L[addonName] = "Bank Officer"
-
-L["Settings"] = true
+L["Stack"] = true
 
 L.Tab = function(tabID)
 	return tabID and ("Tab " .. tabID) or "Tab"

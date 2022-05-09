@@ -31,7 +31,7 @@ local function GetOptionsTree()
 
 	tinsert(tree, {
 		value = keys.settings,
-		text = L["Settings"],
+		text = SETTINGS,
 	})
 
 	return tree
