@@ -99,6 +99,17 @@ local function frame_onClick(frame, mouseButton)
 	end
 end
 
+local function frame_OnDragStart(frame)
+	local widget = frame.obj
+	if
+		IsShiftKeyDown()
+		and widget:GetUserData("slotInfo").itemID
+		and not addon.OptionsFrame:GetUserData("isMoving")
+	then
+		addon.OptionsFrame:SetUserData("isMoving", widget)
+	end
+end
+
 local methods = {
 	OnAcquire = function(widget)
 		widget:SetSize(40, 40)
@@ -144,6 +155,10 @@ local function Constructor()
 	frame:SetPushedTextOffset(0, 0)
 	frame:SetNormalFontObject(NumberFontNormal)
 	frame:SetScript("OnClick", frame_onClick)
+
+	frame:SetMovable(true)
+	frame:RegisterForDrag("LeftButton")
+	frame:SetScript("OnDragStart", frame_OnDragStart)
 
 	local widget = {
 		frame = frame,
