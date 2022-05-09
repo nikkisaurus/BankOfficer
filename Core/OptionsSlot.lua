@@ -33,12 +33,36 @@ local function AddSlotItem(widget)
 	local cursorType, itemID = GetCursorInfo()
 	ClearCursor()
 
-	addon.CacheItem(itemID, function(widget, cursorType, itemID)
-		if cursorType == "item" and itemID and not IsSoulbound(itemID) then
+	if cursorType == "item" and itemID and not IsSoulbound(itemID) then
+		addon.CacheItem(itemID, function(widget, cursorType, itemID)
 			addon.GetGuild().tabs[widget:GetUserData("tabID")].slots[widget:GetUserData("slotKey")].itemID = itemID
 			widget:SetItem(itemID)
-		end
-	end, widget, cursorType, itemID)
+		end, widget, cursorType, itemID)
+	end
+end
+
+local function CloneSlotInfo(slotInfo)
+	local newSlotInfo = {}
+	for k, v in pairs(slotInfo) do
+		newSlotInfo[k] = v
+	end
+	return newSlotInfo
+end
+
+local function MoveItem(target)
+	local source = addon.OptionsFrame:GetUserData("isMoving")
+	local sourceTabID, sourceSlotKey, sourceSlotInfo =
+		source:GetUserData("tabID"), source:GetUserData("slotKey"), source:GetUserData("slotInfo")
+	local targetTabID, targetSlotKey, targetSlotInfo =
+		target:GetUserData("tabID"), target:GetUserData("slotKey"), target:GetUserData("slotInfo")
+
+	addon.GetGuild().tabs[targetTabID].slots[targetSlotKey] = CloneSlotInfo(sourceSlotInfo)
+	target:SetSlotData(sourceTabID, sourceSlotKey, sourceSlotInfo)
+
+	addon.GetGuild().tabs[sourceTabID].slots[sourceSlotKey] = CloneSlotInfo(targetSlotInfo)
+	source:SetSlotData(targetTabID, targetSlotKey, targetSlotInfo)
+
+	addon.OptionsFrame:SetUserData("isMoving")
 end
 
 local function frame_onClick(frame, mouseButton)
@@ -48,20 +72,30 @@ local function frame_onClick(frame, mouseButton)
 	if mouseButton == "LeftButton" then
 		if widget:GetUserData("slotInfo").itemID then
 			if isMoving then
-				print("Swap items") --TODO
-				addon.OptionsFrame:SetUserData("isMoving")
+				MoveItem(widget)
 			else
-				print("Starting move") --TODO
-				addon.OptionsFrame:SetUserData("isMoving", true)
+				--TODO Create icon at cursor
+				addon.OptionsFrame:SetUserData("isMoving", widget)
 			end
 		elseif isMoving then
-			print("Move item") --TODO
-			addon.OptionsFrame:SetUserData("isMoving")
+			MoveItem(widget)
 		else
 			AddSlotItem(widget)
 		end
 	elseif mouseButton == "RightButton" then
-		print("Edit") --TODO
+		if IsShiftKeyDown() then
+			local slotInfo = {
+				itemID = false,
+				stack = [[function()
+                    return 1
+                end]],
+			}
+			local tabID, slotKey = widget:GetUserData("tabID"), widget:GetUserData("slotKey")
+			addon.GetGuild().tabs[tabID].slots[slotKey] = slotInfo
+			widget:SetSlotData(tabID, slotKey, slotInfo)
+		else
+			print("Edit") --TODO
+		end
 	end
 end
 
