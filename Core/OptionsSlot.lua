@@ -164,6 +164,7 @@ local methods = {
 		if type(func) == "function" then
 			local success, userFunc = pcall(func)
 			widget.frame:SetText(success and type(userFunc) == "function" and userFunc())
+			widget.frame:GetFontString():SetPoint("BOTTOMRIGHT", -1, 6)
 		end
 	end,
 }
