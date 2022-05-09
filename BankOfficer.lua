@@ -17,5 +17,5 @@ addon.OnEnable = function()
 	addon.InitializeDatabase()
 	addon:RegisterChatCommand("bo", addon.HandleSlashCommand)
 
-	EnableDebug()
+	--EnableDebug()
 end
