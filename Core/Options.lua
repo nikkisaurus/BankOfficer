@@ -53,10 +53,11 @@ local function AddTemplateToCursor(selectTemplateButton, _, template)
 	stackEditBox:SetFullWidth(true)
 	optionsTree:AddChild(stackEditBox)
 
+	--TODO turn callback into func for place and add
 	local addButton = AceGUI:Create("Button")
 	addButton:SetText(template == NEW and ADD or UPDATE)
 	optionsTree:AddChild(addButton)
-	addButton:SetCallback("OnClick", function()
+	addButton:SetCallback("OnClick", function(button)
 		local templateName = templateNameEditBox:GetText()
 		if not templateName or templateName == "" then
 			addon:Print(L["Invalid template name"])
@@ -74,13 +75,15 @@ local function AddTemplateToCursor(selectTemplateButton, _, template)
 					addon.db.global.templates[templateName] = {
 						itemID = itemID,
 						stack = stack,
+						template = templateName,
 					}
-					--addon.moveFrame:Show()
-					--addon.moveFrame.texture:SetTexture(texture)
-					print("Show frame")
+					if template == NEW or button:GetText() == "Place" then
+						addon.moveFrame.texture:SetTexture(texture)
+						addon.moveFrame.slotInfo = { itemID = itemID, stack = stack, template = templateName }
+						addon.moveFrame:Show()
+						selectTemplateButton:SetList(GetTemplates())
+					end
 					optionsTree:SelectByValue(addon.OptionsFrame:GetUserData("selectedTabID"))
-					selectTemplateButton:SetList(GetTemplates())
-					selectTemplateButton:SetText(L["Select template"])
 				else
 					addon:Print(L["Invalid itemID"])
 					itemIDEditBox:SetFocus()
@@ -89,6 +92,15 @@ local function AddTemplateToCursor(selectTemplateButton, _, template)
 			end, templateName, itemID, stackEditBox:GetText())
 		end
 	end)
+
+	if template ~= NEW then
+		local placeButton = AceGUI:Create("Button")
+		placeButton:SetText(L["Place"])
+		optionsTree:AddChild(placeButton)
+		--placeButton:SetCallback("OnClick", function(...)
+		--	addButton.frame:GetScript("OnClick")(...)
+		--end)
+	end
 
 	local cancelButton = AceGUI:Create("Button")
 	cancelButton:SetText(CANCEL)

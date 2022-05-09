@@ -21,6 +21,7 @@ addon.InitializeDatabase = function()
 								["*"] = {
 									itemID = false,
 									stack = addon.stack,
+									template = false,
 								},
 							},
 						},

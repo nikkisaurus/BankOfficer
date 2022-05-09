@@ -78,6 +78,17 @@ local function EditSlot(tabID, slotKey, slotInfo)
 	end)
 end
 
+local function moveFrame_OnEvent(frame, event, mouseButton)
+	if event == "GLOBAL_MOUSE_DOWN" then
+		local focus = GetMouseFocus()
+		if not focus or not strfind(focus:GetName() or "", "BankOfficerSlot") or mouseButton ~= "LeftButton" then
+			frame.slotInfo = nil
+			frame.texture:SetTexture()
+			frame:Hide()
+		end
+	end
+end
+
 local function moveFrame_OnUpdate(frame)
 	if frame:IsVisible() then
 		local scale, x, y = frame:GetEffectiveScale(), GetCursorPosition()
@@ -89,6 +100,8 @@ local moveFrame = CreateFrame("Frame", "BankOfficerMoveFrame", UIParent)
 moveFrame:SetSize(40, 40)
 moveFrame:SetFrameStrata("TOOLTIP")
 moveFrame:Hide()
+moveFrame:RegisterEvent("GLOBAL_MOUSE_DOWN")
+moveFrame:SetScript("OnEvent", moveFrame_OnEvent)
 moveFrame:SetScript("OnUpdate", moveFrame_OnUpdate)
 moveFrame.texture = moveFrame:CreateTexture()
 moveFrame.texture:SetAllPoints(moveFrame)
@@ -104,6 +117,7 @@ local function MoveItem(target)
 	addon.GetGuild().tabs[targetTabID].slots[targetSlotKey] = {
 		itemID = sourceSlotInfo.itemID,
 		stack = sourceSlotInfo.stack,
+		template = sourceSlotInfo.template,
 	}
 	target:SetSlotData(sourceTabID, sourceSlotKey, sourceSlotInfo)
 
@@ -111,6 +125,7 @@ local function MoveItem(target)
 		addon.GetGuild().tabs[sourceTabID].slots[sourceSlotKey] = {
 			itemID = targetSlotInfo.itemID,
 			stack = targetSlotInfo.stack,
+			template = targetSlotInfo.template,
 		}
 		source:SetSlotData(targetTabID, targetSlotKey, targetSlotInfo)
 	else
@@ -133,7 +148,7 @@ local function frame_onClick(frame, mouseButton)
 	local isMoving = addon.OptionsFrame:GetUserData("isMoving")
 	local tabID, slotKey, slotInfo =
 		widget:GetUserData("tabID"), widget:GetUserData("slotKey"), widget:GetUserData("slotInfo")
-	local itemID = slotInfo.itemID
+	local itemID = slotInfo and slotInfo.itemID
 
 	if mouseButton == "LeftButton" then
 		if itemID then
@@ -145,6 +160,8 @@ local function frame_onClick(frame, mouseButton)
 			else
 				StartMoving(widget, IsControlKeyDown())
 			end
+		elseif moveFrame.slotInfo then
+			widget:SetItem(moveFrame.slotInfo.itemID, true)
 		elseif isMoving then
 			MoveItem(widget)
 		else
@@ -153,9 +170,8 @@ local function frame_onClick(frame, mouseButton)
 	elseif mouseButton == "RightButton" then
 		if IsShiftKeyDown() then
 			addon.GetGuild().tabs[tabID].slots[slotKey].itemID = false
-			addon.GetGuild().tabs[tabID].slots[slotKey].stack = [[function()
-                return 1
-            end]]
+			addon.GetGuild().tabs[tabID].slots[slotKey].stack = addon.stack
+			addon.GetGuild().tabs[tabID].slots[slotKey].template = false
 			widget:SetSlotData(tabID, slotKey, addon.GetGuild().tabs[tabID].slots[slotKey])
 		elseif itemID then
 			addon.CacheItem(itemID, EditSlot, tabID, slotKey, slotInfo)
@@ -179,9 +195,23 @@ local methods = {
 		widget:SetSize(40, 40)
 	end,
 
-	SetItem = function(widget, itemID)
+	SetItem = function(widget, itemID, hasTemplate)
+		if hasTemplate then
+			for key, value in pairs(moveFrame.slotInfo) do
+				widget:GetUserData("slotInfo")[key] = value
+			end
+
+			moveFrame.slotInfo = nil
+			moveFrame.texture:SetTexture()
+			moveFrame:Hide()
+		end
+
+		local templateName = widget:GetUserData("slotInfo").template
+		local itemID = templateName and addon.db.global.templates[templateName].itemID or itemID
+		local stack = templateName and addon.db.global.templates[templateName].stack
+			or widget:GetUserData("slotInfo").stack
 		widget:SetIcon(GetItemIcon(itemID))
-		widget:SetStack(itemID and widget:GetUserData("slotInfo").stack)
+		widget:SetStack(itemID and stack)
 	end,
 
 	SetIcon = function(widget, iconID)

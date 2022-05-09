@@ -6,6 +6,8 @@ LibStub("LibAddonUtils-1.0"):Embed(addon)
 L[addonName] = "Bank Officer"
 L["Invalid itemID"] = true
 L["Invalid template name"] = true
+L["Place"] = true
+L["Save and add"] = true
 L["Select template"] = true
 L["Stack"] = true
 L["Template already exists"] = true
