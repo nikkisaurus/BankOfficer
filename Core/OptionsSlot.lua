@@ -23,7 +23,10 @@ local function IsSoulbound(itemID)
 			scanner:CreateFontString("$parentTextRight" .. i, nil, "GameTooltipText")
 		)
 
-		if _G["BankOfficerScannerTextLeft" .. i]:GetText() == ITEM_BIND_ON_PICKUP then
+		if
+			_G["BankOfficerScannerTextLeft" .. i]
+			and _G["BankOfficerScannerTextLeft" .. i]:GetText() == ITEM_BIND_ON_PICKUP
+		then
 			return true
 		end
 	end
