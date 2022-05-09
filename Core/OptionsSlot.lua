@@ -41,13 +41,20 @@ local function AddSlotItem(widget)
 	end
 end
 
-local function CloneSlotInfo(slotInfo)
-	local newSlotInfo = {}
-	for k, v in pairs(slotInfo) do
-		newSlotInfo[k] = v
+local function moveFrame_OnUpdate(frame)
+	if frame:IsVisible() then
+		local scale, x, y = frame:GetEffectiveScale(), GetCursorPosition()
+		frame:SetPoint("CENTER", nil, "BOTTOMLEFT", (x / scale) + 50, (y / scale) - 20)
 	end
-	return newSlotInfo
 end
+
+local moveFrame = CreateFrame("Frame", "BankOfficerMoveFrame", UIParent)
+moveFrame:SetSize(40, 40)
+moveFrame:SetFrameStrata("TOOLTIP")
+moveFrame:Hide()
+moveFrame:SetScript("OnUpdate", moveFrame_OnUpdate)
+local moveFrameTexture = moveFrame:CreateTexture()
+moveFrameTexture:SetAllPoints(moveFrame)
 
 local function MoveItem(target)
 	local source = addon.OptionsFrame:GetUserData("isMoving")
@@ -56,13 +63,26 @@ local function MoveItem(target)
 	local targetTabID, targetSlotKey, targetSlotInfo =
 		target:GetUserData("tabID"), target:GetUserData("slotKey"), target:GetUserData("slotInfo")
 
-	addon.GetGuild().tabs[targetTabID].slots[targetSlotKey] = CloneSlotInfo(sourceSlotInfo)
+	addon.GetGuild().tabs[targetTabID].slots[targetSlotKey] = {
+		itemID = sourceSlotInfo.itemID,
+		stack = sourceSlotInfo.stack,
+	}
 	target:SetSlotData(sourceTabID, sourceSlotKey, sourceSlotInfo)
 
-	addon.GetGuild().tabs[sourceTabID].slots[sourceSlotKey] = CloneSlotInfo(targetSlotInfo)
+	addon.GetGuild().tabs[sourceTabID].slots[sourceSlotKey] = {
+		itemID = targetSlotInfo.itemID,
+		stack = targetSlotInfo.stack,
+	}
 	source:SetSlotData(targetTabID, targetSlotKey, targetSlotInfo)
 
 	addon.OptionsFrame:SetUserData("isMoving")
+	moveFrame:Hide()
+end
+
+local function StartMoving(widget)
+	addon.OptionsFrame:SetUserData("isMoving", widget)
+	moveFrame:Show()
+	moveFrameTexture:SetTexture(GetItemIcon(widget:GetUserData("slotInfo").itemID))
 end
 
 local function frame_onClick(frame, mouseButton)
@@ -71,11 +91,13 @@ local function frame_onClick(frame, mouseButton)
 
 	if mouseButton == "LeftButton" then
 		if widget:GetUserData("slotInfo").itemID then
+			local cursorType, itemID = GetCursorInfo()
 			if isMoving then
 				MoveItem(widget)
+			elseif cursorType == "item" and itemID then
+				AddSlotItem(widget)
 			else
-				--TODO Create icon at cursor
-				addon.OptionsFrame:SetUserData("isMoving", widget)
+				StartMoving(widget)
 			end
 		elseif isMoving then
 			MoveItem(widget)
@@ -106,7 +128,7 @@ local function frame_OnDragStart(frame)
 		and widget:GetUserData("slotInfo").itemID
 		and not addon.OptionsFrame:GetUserData("isMoving")
 	then
-		addon.OptionsFrame:SetUserData("isMoving", widget)
+		StartMoving(widget)
 	end
 end
 
