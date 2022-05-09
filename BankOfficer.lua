@@ -3,7 +3,8 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
 addon.PLAYER_ENTERING_WORLD = function()
-	LibStub("AceConfigDialog-3.0"):Open(addonName)
+	addon.OptionsFrame:Show()
+	addon.OptionsFrame:GetUserData("children").optionsTree:SelectByPath(1)
 end
 
 local function EnableDebug()
@@ -11,7 +12,8 @@ local function EnableDebug()
 end
 
 addon.OnEnable = function()
-	LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, addon.GetOptionsTable)
+	addon.InitializeDatabase()
+	addon.InitializeOptions()
 	addon:RegisterChatCommand("bo", addon.HandleSlashCommand)
 
 	EnableDebug()
