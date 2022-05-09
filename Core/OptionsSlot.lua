@@ -90,8 +90,9 @@ moveFrame:SetSize(40, 40)
 moveFrame:SetFrameStrata("TOOLTIP")
 moveFrame:Hide()
 moveFrame:SetScript("OnUpdate", moveFrame_OnUpdate)
-local moveFrameTexture = moveFrame:CreateTexture()
-moveFrameTexture:SetAllPoints(moveFrame)
+moveFrame.texture = moveFrame:CreateTexture()
+moveFrame.texture:SetAllPoints(moveFrame)
+addon.moveFrame = moveFrame
 
 local function MoveItem(target)
 	local source = addon.OptionsFrame:GetUserData("isMoving")
@@ -124,7 +125,7 @@ local function StartMoving(widget, duplicate)
 	addon.OptionsFrame:SetUserData("isMoving", widget)
 	addon.OptionsFrame:SetUserData("duplicate", duplicate)
 	moveFrame:Show()
-	moveFrameTexture:SetTexture(GetItemIcon(widget:GetUserData("slotInfo").itemID))
+	moveFrame.texture:SetTexture(GetItemIcon(widget:GetUserData("slotInfo").itemID))
 end
 
 local function frame_onClick(frame, mouseButton)

@@ -14,6 +14,90 @@ local function SetSelectedRule(rule)
 	addon.OptionsFrame:SetUserData("selected", rule)
 end
 
+local function GetTemplates()
+	local templates = {}
+	local order = {}
+
+	for templateKey, template in addon.pairs(addon.db.global.templates) do
+		templates[templateKey] = templateKey
+		tinsert(order, templateKey)
+	end
+
+	templates[NEW] = NEW
+	tinsert(order, NEW)
+
+	return templates, order
+end
+
+local AceGUI = LibStub("AceGUI-3.0")
+local function AddTemplateToCursor(selectTemplateButton, _, template)
+	local optionsTree = addon.OptionsFrame:GetUserData("children").optionsTree
+	selectTemplateButton:SetValue()
+	selectTemplateButton:SetText(L["Select template"])
+	optionsTree:ReleaseChildren()
+	local templateInfo = template ~= NEW and addon.db.global.templates[template]
+
+	local templateNameEditBox = AceGUI:Create("EditBox")
+	templateNameEditBox:SetText(template)
+	templateNameEditBox:SetLabel(L["Template Name"])
+	optionsTree:AddChild(templateNameEditBox)
+
+	local itemIDEditBox = AceGUI:Create("EditBox")
+	itemIDEditBox:SetText(template == NEW and "" or templateInfo.itemID)
+	itemIDEditBox:SetLabel("itemID")
+	optionsTree:AddChild(itemIDEditBox)
+
+	local stackEditBox = AceGUI:Create("MultiLineEditBox")
+	stackEditBox:SetText(template == NEW and addon.stack or templateInfo.stack)
+	stackEditBox:SetLabel(L["Stack"])
+	stackEditBox:SetFullWidth(true)
+	optionsTree:AddChild(stackEditBox)
+
+	local addButton = AceGUI:Create("Button")
+	addButton:SetText(template == NEW and ADD or UPDATE)
+	optionsTree:AddChild(addButton)
+	addButton:SetCallback("OnClick", function()
+		local templateName = templateNameEditBox:GetText()
+		if not templateName or templateName == "" then
+			addon:Print(L["Invalid template name"])
+			templateNameEditBox:SetFocus()
+			templateNameEditBox:HighlightText()
+		elseif template == NEW and addon.db.global.templates[templateName] then
+			addon:Print(L["Template already exists"])
+			templateNameEditBox:SetFocus()
+			templateNameEditBox:HighlightText()
+		else
+			local itemID = tonumber(itemIDEditBox:GetText()) or 0
+			addon.CacheItem(itemID, function(templateName, itemID, stack)
+				local name, _, _, _, _, _, _, _, _, texture = GetItemInfo(itemID)
+				if name then
+					addon.db.global.templates[templateName] = {
+						itemID = itemID,
+						stack = stack,
+					}
+					--addon.moveFrame:Show()
+					--addon.moveFrame.texture:SetTexture(texture)
+					print("Show frame")
+					optionsTree:SelectByValue(addon.OptionsFrame:GetUserData("selectedTabID"))
+					selectTemplateButton:SetList(GetTemplates())
+					selectTemplateButton:SetText(L["Select template"])
+				else
+					addon:Print(L["Invalid itemID"])
+					itemIDEditBox:SetFocus()
+					itemIDEditBox:HighlightText()
+				end
+			end, templateName, itemID, stackEditBox:GetText())
+		end
+	end)
+
+	local cancelButton = AceGUI:Create("Button")
+	cancelButton:SetText(CANCEL)
+	optionsTree:AddChild(cancelButton)
+	cancelButton:SetCallback("OnClick", function()
+		optionsTree:SelectByValue(addon.OptionsFrame:GetUserData("selectedTabID"))
+	end)
+end
+
 local keys = {
 	settings = MAX_GUILDBANK_TABS + 1,
 }
@@ -57,7 +141,6 @@ local function AddChild(childName, child)
 	addon.OptionsFrame:GetUserData("children")[childName] = child
 end
 
-local AceGUI = LibStub("AceGUI-3.0")
 addon.InitializeOptions = function()
 	local optionsContainer = AceGUI:Create("Window")
 	optionsContainer:SetTitle(L[addonName])
@@ -74,6 +157,11 @@ addon.InitializeOptions = function()
 	selectRuleButton:SetValue(addon.GetGuildKey())
 	selectRuleButton:SetCallback("OnValueChanged", SetSelectedRule(value))
 
+	local selectTemplateButton = AceGUI:Create("Dropdown")
+	selectTemplateButton:SetList(GetTemplates())
+	selectTemplateButton:SetText(L["Select template"])
+	selectTemplateButton:SetCallback("OnValueChanged", AddTemplateToCursor)
+
 	local optionsTree = AceGUI:Create("TreeGroup")
 	optionsTree:SetLayout("Flow")
 	optionsTree:SetFullHeight(true)
@@ -82,6 +170,7 @@ addon.InitializeOptions = function()
 	optionsTree:SetCallback("OnGroupSelected", GetTabContent)
 
 	AddChild("selectRuleButton", selectRuleButton)
+	AddChild("selectTemplateButton", selectTemplateButton)
 	AddChild("optionsTree", optionsTree)
 end
 
