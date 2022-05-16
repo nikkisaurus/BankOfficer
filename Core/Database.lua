@@ -13,6 +13,11 @@ addon.InitializeDatabase = function()
 				["*"] = {},
 			},
 			settings = {},
+			rules = {
+				["*"] = {
+					--type = "list", -- tab, list
+				},
+			},
 			guilds = {
 				["*"] = {
 					tabsPurchased = false,

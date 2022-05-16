@@ -174,7 +174,7 @@ local function AddTemplateToCursor(selectTemplateButton, _, template)
 	end)
 
 	local deleteButton = AceGUI:Create("Button")
-	deleteButton:SetText(L["Delete"])
+	deleteButton:SetText(DELETE)
 	addon.OptionsFrame:GetUserData("children").deleteButton = deleteButton
 	optionsTree:AddChild(deleteButton)
 	deleteButton:SetCallback("OnClick", DeleteTemplate(templateNameEditBox:GetText()))
