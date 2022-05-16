@@ -4,6 +4,7 @@ local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
 LibStub("LibAddonUtils-1.0"):Embed(addon)
 
 L[addonName] = "Bank Officer"
+L["Delete"] = true
 L["Invalid itemID"] = true
 L["Invalid template name"] = true
 L["Place"] = true

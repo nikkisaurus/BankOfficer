@@ -9,7 +9,9 @@ end]]
 addon.InitializeDatabase = function()
 	addon.db = LibStub("AceDB-3.0"):New("BankOfficerDB", {
 		global = {
-			templates = {},
+			templates = {
+				["*"] = {},
+			},
 			settings = {},
 			guilds = {
 				["*"] = {
@@ -31,12 +33,7 @@ addon.InitializeDatabase = function()
 		},
 	}, true)
 
-	local guildKey = addon.GetGuildKey()
-
-	C_Timer.After(1, function()
-		addon.db.global.guilds[guildKey].tabsPurchased = GetNumGuildBankTabs()
-		addon.InitializeOptions()
-	end)
+	addon.db.global.guilds[addon.GetGuildKey()].tabsPurchased = GetNumGuildBankTabs()
 end
 
 addon.GetGuildKey = function()
@@ -46,6 +43,6 @@ addon.GetGuildKey = function()
 	return format("%s - %s", guild, realm)
 end
 
-addon.GetGuild = function()
-	return addon.db.global.guilds[addon.GetGuildKey()]
+addon.GetGuild = function(guild)
+	return addon.db.global.guilds[guild or addon.GetGuildKey()]
 end

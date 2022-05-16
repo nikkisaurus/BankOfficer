@@ -207,8 +207,9 @@ local methods = {
 		end
 
 		local templateName = widget:GetUserData("slotInfo").template
-		local itemID = templateName and addon.db.global.templates[templateName].itemID or itemID
-		local stack = templateName and addon.db.global.templates[templateName].stack
+		local templateExists = templateName and addon.db.global.templates[templateName]
+		local itemID = templateExists and addon.db.global.templates[templateName].itemID or itemID
+		local stack = templateExists and addon.db.global.templates[templateName].stack
 			or widget:GetUserData("slotInfo").stack
 		widget:SetIcon(GetItemIcon(itemID))
 		widget:SetStack(itemID and stack)
