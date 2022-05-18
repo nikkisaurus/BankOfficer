@@ -92,6 +92,16 @@ local function ConfirmDeleteRule(deleteRuleButton)
 	coroutine.resume(private.co)
 end
 
+local function DuplicateRule(duplicateRuleButton)
+	local ruleGroup = duplicateRuleButton.parent.parent.parent.parent
+	local ruleName = ruleGroup:GetUserData("selectedRule")
+	local newRuleName = addon.EnumerateString(ruleName, private.RuleExists)
+
+	addon.db.global.rules[newRuleName] = addon.CloneTable(addon.db.global.rules[ruleName])
+	ruleGroup:SetGroupList(GetRules())
+	ruleGroup:SetGroup(newRuleName)
+end
+
 local function RenameRule(ruleNameEditBox)
 	local ruleGroup = ruleNameEditBox.parent.parent.parent.parent
 	local ruleName = ruleGroup:GetUserData("selectedRule")
@@ -108,7 +118,7 @@ local function RenameRule(ruleNameEditBox)
 		return statusLabel:SetText(L["Invalid rule name"])
 	end
 
-	addon.db.global.rules[newRuleName] = addon:CloneTable(addon.db.global.rules[ruleName])
+	addon.db.global.rules[newRuleName] = addon.CloneTable(addon.db.global.rules[ruleName])
 	DeleteRule(ruleGroup, ruleName)
 	ruleGroup:SetGroupList(GetRules())
 	ruleGroup:SetGroup(newRuleName)
@@ -234,6 +244,11 @@ local function treeGroup_OnGroupSelected(treeGroup, _, path)
 		guildsDropdown:SetMultiselect(true)
 		guildsDropdown:SetCallback("OnValueChanged", guildsDropdown_OnValueChanged)
 
+		local duplicateRuleButton = AceGUI:Create("Button")
+		duplicateRuleButton:SetUserData("elementName", "deleteRuleButton")
+		duplicateRuleButton:SetText(L["Duplicate"])
+		duplicateRuleButton:SetCallback("OnClick", DuplicateRule)
+
 		local deleteRuleButton = AceGUI:Create("Button")
 		deleteRuleButton:SetUserData("elementName", "deleteRuleButton")
 		deleteRuleButton:SetText(DELETE)
@@ -247,7 +262,7 @@ local function treeGroup_OnGroupSelected(treeGroup, _, path)
 
 		private.AddChildren(
 			scrollFrame,
-			{ ruleNameEditBox, ruleTypeDropdown, guildsDropdown, deleteRuleButton, statusLabel }
+			{ ruleNameEditBox, ruleTypeDropdown, guildsDropdown, duplicateRuleButton, deleteRuleButton, statusLabel }
 		)
 
 		UpdateGuildsDropdown(guildsDropdown)

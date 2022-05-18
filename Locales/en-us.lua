@@ -8,6 +8,7 @@ L[addonName] = "Bank Officer"
 
 L["Add Rule"] = true
 L["Apply rule to guilds"] = true
+L["Duplicate"] = true
 L["List"] = true
 L["Tab"] = true
 
