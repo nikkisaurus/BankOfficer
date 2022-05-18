@@ -11,16 +11,29 @@ local RULE_TYPES = {
 
 local function GetRules()
 	local rules = {}
+	local order = {}
 
-	for ruleName, rule in pairs(addon.db.global.rules) do
+	for ruleName, rule in addon.pairs(addon.db.global.rules) do
 		if rule.type then
 			rules[ruleName] = ruleName
+			tinsert(order, ruleName)
 		end
 	end
 
 	rules["__new"] = L["Add Rule"]
+	tinsert(order, "__new")
 
-	return rules
+	return rules, order
+end
+
+local function GetGuildList()
+	local guilds = {}
+
+	for guildKey, _ in pairs(addon.db.global.guilds) do
+		guilds[guildKey] = guildKey
+	end
+
+	return guilds
 end
 
 local function GetTreeList(ruleGroup)
@@ -31,7 +44,11 @@ local function GetTreeList(ruleGroup)
 		},
 	}
 
-	local ruleName = ruleGroup.dropdown:GetValue()
+	local ruleName = ruleGroup:GetUserData("selectedRule")
+	if not ruleName then
+		return list
+	end
+
 	local rule = addon.db.global.rules[ruleName]
 
 	if rule.type == "tab" then
@@ -58,8 +75,8 @@ local function DeleteRule(ruleGroup, ruleName)
 end
 
 local function ConfirmDeleteRule(deleteRuleButton)
-	local ruleGroup = deleteRuleButton.parent.parent
-	local ruleName = ruleGroup.dropdown:GetValue()
+	local ruleGroup = deleteRuleButton.parent.parent.parent.parent
+	local ruleName = ruleGroup:GetUserData("selectedRule")
 
 	private.CreateCoroutine(function()
 		private.RequestConfirmation(L.DeleteRule(ruleName))
@@ -76,8 +93,8 @@ local function ConfirmDeleteRule(deleteRuleButton)
 end
 
 local function RenameRule(ruleNameEditBox)
-	local ruleGroup = ruleNameEditBox.parent.parent
-	local ruleName = ruleGroup.dropdown:GetValue()
+	local ruleGroup = ruleNameEditBox.parent.parent.parent.parent
+	local ruleName = ruleGroup:GetUserData("selectedRule")
 	local newRuleName = ruleNameEditBox:GetText()
 	local statusLabel = private.GetChild(ruleNameEditBox.parent, "statusLabel")
 
@@ -101,8 +118,8 @@ private.RuleExists = function(ruleName)
 	return addon.db.global.rules[ruleName].type
 end
 
-local function SaveRule(saveButton)
-	local ruleGroup = saveButton.parent
+local function AddRule(addRuleButton)
+	local ruleGroup = addRuleButton.parent
 	local ruleNameEditBox = private.GetChild(ruleGroup, "ruleNameEditBox")
 	local ruleName = ruleNameEditBox:GetText()
 	local ruleTypeDropdown = private.GetChild(ruleGroup, "ruleTypeDropdown")
@@ -121,9 +138,10 @@ local function SaveRule(saveButton)
 	ruleGroup:SetGroup(ruleName)
 end
 
-local function UpdateRule(treeGroup, ruleName, key, value)
-	addon.db.global.rules[ruleName][key] = value
-	treeGroup:SetTree(GetTreeList(treeGroup.parent))
+local function UpdateRule(treeGroup, key, value)
+	local ruleGroup = treeGroup.parent
+	addon.db.global.rules[ruleGroup:GetUserData("selectedRule")][key] = value
+	treeGroup:SetTree(GetTreeList(ruleGroup))
 end
 
 -- AddRuleContent
@@ -133,6 +151,7 @@ end
 
 local function AddRuleContent(ruleGroup)
 	ruleGroup:SetLayout("Flow")
+
 	local ruleNameEditBox = AceGUI:Create("EditBox")
 	ruleNameEditBox:SetUserData("elementName", "ruleNameEditBox")
 	ruleNameEditBox:SetLabel(NAME)
@@ -145,10 +164,10 @@ local function AddRuleContent(ruleGroup)
 	ruleTypeDropdown:SetLabel(TYPE)
 	ruleTypeDropdown:SetValue("list")
 
-	local saveButton = AceGUI:Create("Button")
-	saveButton:SetUserData("elementName", "saveButton")
-	saveButton:SetText(ADD)
-	saveButton:SetCallback("OnClick", SaveRule)
+	local addRuleButton = AceGUI:Create("Button")
+	addRuleButton:SetUserData("elementName", "addRuleButton")
+	addRuleButton:SetText(ADD)
+	addRuleButton:SetCallback("OnClick", AddRule)
 
 	local statusLabel = AceGUI:Create("Label")
 	statusLabel:SetUserData("elementName", "statusLabel")
@@ -156,13 +175,29 @@ local function AddRuleContent(ruleGroup)
 	statusLabel:SetColor(1, 0, 0)
 	statusLabel:SetText()
 
-	private.AddChildren(ruleGroup, { ruleNameEditBox, ruleTypeDropdown, saveButton, statusLabel })
+	private.AddChildren(ruleGroup, { ruleNameEditBox, ruleTypeDropdown, addRuleButton, statusLabel })
 end
 
 -- RuleContent
+local function guildsDropdown_OnValueChanged(guildsDropdown, _, guild, checked)
+	local ruleGroup = guildsDropdown.parent.parent.parent.parent
+	local ruleName = ruleGroup:GetUserData("selectedRule")
+
+	addon.db.global.rules[ruleName].guilds[guild] = checked
+end
+
+local function UpdateGuildsDropdown(guildsDropdown)
+	local ruleGroup = guildsDropdown.parent.parent.parent.parent
+	local ruleName = ruleGroup:GetUserData("selectedRule")
+
+	for guildKey, checked in pairs(addon.db.global.rules[ruleName].guilds) do
+		guildsDropdown:SetItemValue(guildKey, checked)
+	end
+end
+
 local function treeGroup_OnGroupSelected(treeGroup, _, path)
 	local ruleGroup = treeGroup.parent
-	local ruleName = ruleGroup.dropdown:GetValue()
+	local ruleName = ruleGroup:GetUserData("selectedRule")
 	local rule = addon.db.global.rules[ruleName]
 	local scrollFrame = private.GetChild(private.GetChild(treeGroup, "scrollContainer"), "scrollFrame")
 
@@ -175,6 +210,7 @@ local function treeGroup_OnGroupSelected(treeGroup, _, path)
 	if path == "settings" then
 		local ruleNameEditBox = AceGUI:Create("EditBox")
 		ruleNameEditBox:SetUserData("elementName", "ruleNameEditBox")
+		ruleNameEditBox:SetFullWidth(true)
 		ruleNameEditBox:SetText(ruleName)
 		ruleNameEditBox:SetLabel(NAME)
 		ruleNameEditBox:DisableButton(true)
@@ -182,12 +218,21 @@ local function treeGroup_OnGroupSelected(treeGroup, _, path)
 
 		local ruleTypeDropdown = AceGUI:Create("Dropdown")
 		ruleTypeDropdown:SetUserData("elementName", "ruleTypeDropdown")
+		ruleTypeDropdown:SetRelativeWidth(1 / 2)
 		ruleTypeDropdown:SetList(RULE_TYPES)
 		ruleTypeDropdown:SetLabel(TYPE)
 		ruleTypeDropdown:SetValue(rule.type)
 		ruleTypeDropdown:SetCallback("OnValueChanged", function(_, _, ruleType)
-			UpdateRule(treeGroup, ruleName, "type", ruleType)
+			UpdateRule(treeGroup, "type", ruleType)
 		end)
+
+		local guildsDropdown = AceGUI:Create("Dropdown")
+		guildsDropdown:SetUserData("elementName", "guildsDropdown")
+		guildsDropdown:SetRelativeWidth(1 / 2)
+		guildsDropdown:SetList(GetGuildList())
+		guildsDropdown:SetLabel(L["Apply rule to guilds"])
+		guildsDropdown:SetMultiselect(true)
+		guildsDropdown:SetCallback("OnValueChanged", guildsDropdown_OnValueChanged)
 
 		local deleteRuleButton = AceGUI:Create("Button")
 		deleteRuleButton:SetUserData("elementName", "deleteRuleButton")
@@ -200,7 +245,12 @@ local function treeGroup_OnGroupSelected(treeGroup, _, path)
 		statusLabel:SetColor(1, 0, 0)
 		statusLabel:SetText()
 
-		private.AddChildren(scrollFrame, { ruleNameEditBox, ruleTypeDropdown, deleteRuleButton, statusLabel })
+		private.AddChildren(
+			scrollFrame,
+			{ ruleNameEditBox, ruleTypeDropdown, guildsDropdown, deleteRuleButton, statusLabel }
+		)
+
+		UpdateGuildsDropdown(guildsDropdown)
 	elseif strfind(path, "tab") then
 		private.LoadTab(scrollFrame, gsub(path, "tab", ""))
 	end
@@ -237,6 +287,7 @@ end
 -- Load
 local function SelectRule(ruleGroup, _, rule)
 	ruleGroup:ReleaseChildren()
+	ruleGroup:SetUserData("selectedRule", rule)
 
 	if rule == "__new" then
 		AddRuleContent(ruleGroup)

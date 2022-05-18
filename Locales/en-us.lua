@@ -7,6 +7,7 @@ local private = {}
 L[addonName] = "Bank Officer"
 
 L["Add Rule"] = true
+L["Apply rule to guilds"] = true
 L["List"] = true
 L["Tab"] = true
 

@@ -17,7 +17,8 @@ addon.InitializeDatabase = function()
 			},
 			rules = {
 				["*"] = {
-					--type = "list", -- tab, list
+					type = nil, -- tab|list
+					guilds = {},
 				},
 			},
 			guilds = {
