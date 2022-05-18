@@ -8,8 +8,11 @@ end
 
 addon.Debug = function()
 	private.frame:Show()
+
 	local tabGroup = private.GetChild(private.frame, "tabGroup")
-	private.GetChild(tabGroup, "ruleGroup"):SetGroup("Born of Blood")
+	local ruleGroup = private.GetChild(tabGroup, "ruleGroup")
+	ruleGroup:SetGroup("Born of Blood - List")
+	private.GetChild(ruleGroup, "treeGroup"):SelectByPath("lists", "Default")
 end
 
 addon.OnEnable = function()
@@ -20,6 +23,6 @@ end
 addon.SPELLS_CHANGED = function()
 	addon.InitializeDatabase()
 	private.InitializeGUI()
-	addon.Debug()
+	--addon.Debug()
 	addon:UnregisterEvent("SPELLS_CHANGED")
 end

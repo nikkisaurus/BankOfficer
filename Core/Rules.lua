@@ -36,7 +36,7 @@ local function GetGuildList()
 	return guilds
 end
 
-local function GetTreeList(ruleGroup)
+function private.GetTreeList(ruleGroup)
 	local list = {
 		{
 			value = "settings",
@@ -58,15 +58,31 @@ local function GetTreeList(ruleGroup)
 				text = L.TabID(tabID),
 			})
 		end
-	end
+	elseif rule.type == "list" then
+		local lists = {
+			value = "lists",
+			text = L["Lists"],
+		}
 
-	--TODO Add list tabs
+		for listKey, listInfo in addon.pairs(rule.lists) do
+			if listInfo.min then
+				if not lists.children then
+					lists.children = {}
+				end
+				tinsert(lists.children, {
+					value = listKey,
+					text = listKey,
+				})
+			end
+		end
+
+		tinsert(list, lists)
+	end
 
 	return list
 end
 
 -- Database
-
 local function DeleteRule(ruleGroup, ruleName)
 	wipe(addon.db.global.rules[ruleName])
 	ruleGroup:SetGroupList(GetRules())
@@ -151,7 +167,7 @@ end
 local function UpdateRule(treeGroup, key, value)
 	local ruleGroup = treeGroup.parent
 	addon.db.global.rules[ruleGroup:GetUserData("selectedRule")][key] = value
-	treeGroup:SetTree(GetTreeList(ruleGroup))
+	treeGroup:SetTree(private.GetTreeList(ruleGroup))
 end
 
 -- AddRuleContent
@@ -268,6 +284,11 @@ local function treeGroup_OnGroupSelected(treeGroup, _, path)
 		UpdateGuildsDropdown(guildsDropdown)
 	elseif strfind(path, "tab") then
 		private.LoadTab(scrollFrame, gsub(path, "tab", ""))
+	elseif path == "lists" then
+		private.LoadListsContent(scrollFrame)
+	elseif strfind(path, "lists") then
+		local _, listName = strsplit("\001", path)
+		private.LoadList(scrollFrame, listName)
 	end
 end
 
@@ -278,7 +299,7 @@ local function RuleContent(ruleGroup)
 	treeGroup:SetUserData("elementName", "treeGroup")
 	treeGroup:SetUserData("children", {})
 	treeGroup:SetLayout("Flow")
-	treeGroup:SetTree(GetTreeList(ruleGroup))
+	treeGroup:SetTree(private.GetTreeList(ruleGroup))
 	treeGroup:SetCallback("OnGroupSelected", treeGroup_OnGroupSelected)
 	private.AddChildren(ruleGroup, { treeGroup })
 

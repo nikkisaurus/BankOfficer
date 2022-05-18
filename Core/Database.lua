@@ -19,6 +19,14 @@ addon.InitializeDatabase = function()
 				["*"] = {
 					type = nil, -- tab|list
 					guilds = {},
+					tabs = {},
+					lists = {
+						["*"] = {
+							min = nil, -- min restock amount
+							tabs = {}, -- included tabs
+							itemIDs = {}, -- itemIDs this list is applied to
+						},
+					},
 				},
 			},
 			guilds = {

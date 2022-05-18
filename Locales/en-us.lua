@@ -6,23 +6,33 @@ local private = {}
 
 L[addonName] = "Bank Officer"
 
+L["Add"] = true
+L["Add List"] = true
 L["Add Rule"] = true
 L["Apply rule to guilds"] = true
 L["Duplicate"] = true
 L["List"] = true
+L["Lists"] = true
 L["Tab"] = true
+
+L["Missing list name"] = true
+
+L.DeleteList = function(ruleName, listName)
+	return format('Are you sure you want to delete the list "%s" from "%s"?', listName, ruleName)
+end
+L.ListExists = function(listName)
+	return format('List "%s" already exists', listName)
+end
 
 L["Invalid rule name"] = true
 L["Missing rule name"] = true
 
-L.RuleExists = function(ruleName)
-	return format('Rule "%s" already exists', ruleName)
-end
-
 L.DeleteRule = function(ruleName)
 	return format('Are you sure you want to delete the rule "%s"?', ruleName)
 end
-
+L.RuleExists = function(ruleName)
+	return format('Rule "%s" already exists', ruleName)
+end
 L.TabID = function(tabID)
 	return tabID and ("Tab " .. tabID) or "Tab"
 end
