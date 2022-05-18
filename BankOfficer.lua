@@ -7,9 +7,9 @@ private.CreateCoroutine = function(func)
 end
 
 addon.Debug = function()
-	C_Timer.After(2, function()
-		private.frame:Show()
-	end)
+	private.frame:Show()
+	local tabGroup = private.GetChild(private.frame, "tabGroup")
+	private.GetChild(tabGroup, "ruleGroup"):SetGroup("Born of Blood")
 end
 
 addon.OnEnable = function()
@@ -20,6 +20,6 @@ end
 addon.SPELLS_CHANGED = function()
 	addon.InitializeDatabase()
 	private.InitializeGUI()
-	--addon.Debug()
+	addon.Debug()
 	addon:UnregisterEvent("SPELLS_CHANGED")
 end

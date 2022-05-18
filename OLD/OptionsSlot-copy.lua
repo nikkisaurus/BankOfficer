@@ -2,7 +2,7 @@ local addonName = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-local Type = "BankOfficerSlot"
+local Type = "BankOfficerSlotButton"
 local Version = 1
 
 local AceGUI = LibStub("AceGUI-3.0")
@@ -81,7 +81,7 @@ end
 local function moveFrame_OnEvent(frame, event, mouseButton)
 	if event == "GLOBAL_MOUSE_DOWN" then
 		local focus = GetMouseFocus()
-		if not focus or not strfind(focus:GetName() or "", "BankOfficerSlot") or mouseButton ~= "LeftButton" then
+		if not focus or not strfind(focus:GetName() or "", "BankOfficerSlotButton") or mouseButton ~= "LeftButton" then
 			frame.slotInfo = nil
 			frame.texture:SetTexture()
 			frame:Hide()

@@ -8,4 +8,6 @@
 Libs\lib.xml
 Locales\en-us.lua
 Core\embeds.xml
+Widgets\embeds.xml
+Modules\embeds.xml
 BankOfficer.lua

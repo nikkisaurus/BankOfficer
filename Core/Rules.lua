@@ -23,7 +23,7 @@ local function GetRules()
 	return rules
 end
 
-local function GetTreeList()
+local function GetTreeList(ruleGroup)
 	local list = {
 		{
 			value = "settings",
@@ -31,7 +31,19 @@ local function GetTreeList()
 		},
 	}
 
-	--TODO Add tabs based on type
+	local ruleName = ruleGroup.dropdown:GetValue()
+	local rule = addon.db.global.rules[ruleName]
+
+	if rule.type == "tab" then
+		for tabID = 1, MAX_GUILDBANK_TABS do
+			tinsert(list, {
+				value = "tab" .. tabID,
+				text = L.TabID(tabID),
+			})
+		end
+	end
+
+	--TODO Add list tabs
 
 	return list
 end
@@ -109,9 +121,9 @@ local function SaveRule(saveButton)
 	ruleGroup:SetGroup(ruleName)
 end
 
-local function UpdateRule(ruleName, key, value)
+local function UpdateRule(treeGroup, ruleName, key, value)
 	addon.db.global.rules[ruleName][key] = value
-	--TODO Refresh tree list
+	treeGroup:SetTree(GetTreeList(treeGroup.parent))
 end
 
 -- AddRuleContent
@@ -148,43 +160,50 @@ local function AddRuleContent(ruleGroup)
 end
 
 -- RuleContent
-local function treeGroup_OnGroupSelected(treeGroup)
+local function treeGroup_OnGroupSelected(treeGroup, _, path)
 	local ruleGroup = treeGroup.parent
 	local ruleName = ruleGroup.dropdown:GetValue()
 	local rule = addon.db.global.rules[ruleName]
+	local scrollFrame = private.GetChild(private.GetChild(treeGroup, "scrollContainer"), "scrollFrame")
+
+	scrollFrame:ReleaseChildren()
 
 	if not rule or not rule.type then
 		return
 	end
 
-	local ruleNameEditBox = AceGUI:Create("EditBox")
-	ruleNameEditBox:SetUserData("elementName", "ruleNameEditBox")
-	ruleNameEditBox:SetText(ruleName)
-	ruleNameEditBox:SetLabel(NAME)
-	ruleNameEditBox:DisableButton(true)
-	ruleNameEditBox:SetCallback("OnEnterPressed", RenameRule)
+	if path == "settings" then
+		local ruleNameEditBox = AceGUI:Create("EditBox")
+		ruleNameEditBox:SetUserData("elementName", "ruleNameEditBox")
+		ruleNameEditBox:SetText(ruleName)
+		ruleNameEditBox:SetLabel(NAME)
+		ruleNameEditBox:DisableButton(true)
+		ruleNameEditBox:SetCallback("OnEnterPressed", RenameRule)
 
-	local ruleTypeDropdown = AceGUI:Create("Dropdown")
-	ruleTypeDropdown:SetUserData("elementName", "ruleTypeDropdown")
-	ruleTypeDropdown:SetList(RULE_TYPES)
-	ruleTypeDropdown:SetLabel(TYPE)
-	ruleTypeDropdown:SetValue(rule.type)
-	ruleTypeDropdown:SetCallback("OnValueChanged", function(_, _, ruleType)
-		UpdateRule(ruleName, "type", ruleType)
-	end)
+		local ruleTypeDropdown = AceGUI:Create("Dropdown")
+		ruleTypeDropdown:SetUserData("elementName", "ruleTypeDropdown")
+		ruleTypeDropdown:SetList(RULE_TYPES)
+		ruleTypeDropdown:SetLabel(TYPE)
+		ruleTypeDropdown:SetValue(rule.type)
+		ruleTypeDropdown:SetCallback("OnValueChanged", function(_, _, ruleType)
+			UpdateRule(treeGroup, ruleName, "type", ruleType)
+		end)
 
-	local deleteRuleButton = AceGUI:Create("Button")
-	deleteRuleButton:SetUserData("elementName", "deleteRuleButton")
-	deleteRuleButton:SetText(DELETE)
-	deleteRuleButton:SetCallback("OnClick", ConfirmDeleteRule)
+		local deleteRuleButton = AceGUI:Create("Button")
+		deleteRuleButton:SetUserData("elementName", "deleteRuleButton")
+		deleteRuleButton:SetText(DELETE)
+		deleteRuleButton:SetCallback("OnClick", ConfirmDeleteRule)
 
-	local statusLabel = AceGUI:Create("Label")
-	statusLabel:SetUserData("elementName", "statusLabel")
-	statusLabel:SetFullWidth(true)
-	statusLabel:SetColor(1, 0, 0)
-	statusLabel:SetText()
+		local statusLabel = AceGUI:Create("Label")
+		statusLabel:SetUserData("elementName", "statusLabel")
+		statusLabel:SetFullWidth(true)
+		statusLabel:SetColor(1, 0, 0)
+		statusLabel:SetText()
 
-	private.AddChildren(treeGroup, { ruleNameEditBox, ruleTypeDropdown, deleteRuleButton, statusLabel })
+		private.AddChildren(scrollFrame, { ruleNameEditBox, ruleTypeDropdown, deleteRuleButton, statusLabel })
+	elseif strfind(path, "tab") then
+		private.LoadTab(scrollFrame, gsub(path, "tab", ""))
+	end
 end
 
 local function RuleContent(ruleGroup)
@@ -194,9 +213,24 @@ local function RuleContent(ruleGroup)
 	treeGroup:SetUserData("elementName", "treeGroup")
 	treeGroup:SetUserData("children", {})
 	treeGroup:SetLayout("Flow")
-	treeGroup:SetTree(GetTreeList())
+	treeGroup:SetTree(GetTreeList(ruleGroup))
 	treeGroup:SetCallback("OnGroupSelected", treeGroup_OnGroupSelected)
 	private.AddChildren(ruleGroup, { treeGroup })
+
+	local scrollContainer = AceGUI:Create("SimpleGroup")
+	scrollContainer:SetUserData("elementName", "scrollContainer")
+	scrollContainer:SetUserData("children", {})
+	scrollContainer:SetFullWidth(true)
+	scrollContainer:SetFullHeight(true)
+	scrollContainer:SetLayout("Fill")
+	private.AddChildren(treeGroup, { scrollContainer })
+
+	local scrollFrame = AceGUI:Create("ScrollFrame")
+	scrollFrame:SetUserData("elementName", "scrollFrame")
+	scrollFrame:SetUserData("children", {})
+	scrollFrame:SetLayout("Flow")
+	private.AddChildren(scrollContainer, { scrollFrame })
+
 	treeGroup:SelectByPath("settings")
 end
 
@@ -214,6 +248,7 @@ end
 private.LoadRules = function(tabGroup)
 	tabGroup:SetLayout("Fill")
 	local ruleGroup = AceGUI:Create("DropdownGroup")
+	ruleGroup:SetUserData("elementName", "ruleGroup")
 	ruleGroup:SetUserData("children", {})
 	ruleGroup:SetGroupList(GetRules())
 	ruleGroup:SetCallback("OnGroupSelected", SelectRule)

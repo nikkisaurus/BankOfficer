@@ -21,6 +21,6 @@ L.DeleteRule = function(ruleName)
 	return format('Are you sure you want to delete the rule "%s"?', ruleName)
 end
 
-L.Tab = function(tabID)
+L.TabID = function(tabID)
 	return tabID and ("Tab " .. tabID) or "Tab"
 end

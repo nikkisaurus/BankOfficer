@@ -12,7 +12,9 @@ addon.InitializeDatabase = function()
 			templates = {
 				["*"] = {},
 			},
-			settings = {},
+			settings = {
+				frameScale = 1,
+			},
 			rules = {
 				["*"] = {
 					--type = "list", -- tab, list

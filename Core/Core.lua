@@ -13,7 +13,7 @@ local function LoadTab(tabGroup, _, tabName)
 	tabGroup:ReleaseChildren()
 	tabName = strupper(sub(tabName, 1, 1)) .. sub(tabName, 2)
 	local tabContent = private["Load" .. tabName](tabGroup)
-	tabGroup:AddChild(tabContent)
+	private.AddChildren(tabGroup, { tabContent })
 end
 
 -- Initialize
@@ -33,15 +33,18 @@ private.InitializeGUI = function()
 	frame:SetUserData("children", {})
 	frame:SetTitle(L[addonName])
 	frame:SetLayout("Fill")
-	--frame:EnableResize(false)
-	frame:SetWidth(825)
-	frame:SetHeight(500)
+	frame:EnableResize(false)
+	frame:SetWidth(850)
+	frame:SetHeight(462)
 	frame:SetCallback("OnShow", frame_OnShow)
 	frame:Hide()
 	private.frame = frame
+	_G["BankOfficerFrame"] = frame.frame
+	tinsert(UISpecialFrames, "BankOfficerFrame")
 
 	local tabGroup = AceGUI:Create("TabGroup")
 	tabGroup:SetUserData("elementName", "tabGroup")
+	tabGroup:SetUserData("children", {})
 	tabGroup:SetTabs({
 		{
 			value = "rules",
