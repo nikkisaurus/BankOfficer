@@ -14,9 +14,12 @@ local function LoadTab(tabGroup, _, tabName)
 	tabName = strupper(sub(tabName, 1, 1)) .. sub(tabName, 2)
 	local tabContent = private["Load" .. tabName](tabGroup)
 	private.AddChildren(tabGroup, { tabContent })
+	private.status.tabName = tabName
 end
 
 -- Initialize
+private.status = {}
+
 private.AddChildren = function(parent, children)
 	for _, child in pairs(children) do
 		parent:AddChild(child)
@@ -35,7 +38,7 @@ private.InitializeGUI = function()
 	frame:SetLayout("Fill")
 	frame:EnableResize(false)
 	frame:SetWidth(850)
-	frame:SetHeight(462)
+	frame:SetHeight(500)
 	frame:SetCallback("OnShow", frame_OnShow)
 	frame:Hide()
 	private.frame = frame

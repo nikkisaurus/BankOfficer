@@ -7,12 +7,20 @@ local private = {}
 L[addonName] = "Bank Officer"
 
 L["Add"] = true
+L["Add ItemID"] = true
 L["Add List"] = true
 L["Add Rule"] = true
 L["Apply rule to guilds"] = true
+L["Apply list rule to guilds"] = true
+L["Cannot add soulbound item to list rule"] = true
 L["Duplicate"] = true
+L["Guilds"] = true
+L["ItemID exists in list rule"] = true
+L["ItemIDs"] = true
+L["Invalid itemID"] = true
 L["List"] = true
 L["Lists"] = true
+L["Minimum Restock"] = true
 L["Tab"] = true
 
 L["Missing list name"] = true
