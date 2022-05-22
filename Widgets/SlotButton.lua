@@ -22,6 +22,7 @@ end
 local function frame_onClick(frame, mouseButton)
 	local widget = frame.obj
 	local templateName = widget:GetUserData("templateName")
+
 	if mouseButton == "LeftButton" then
 		local quickAddTemplate = private.status.quickAddTemplate
 		if quickAddTemplate == "__clear" then
@@ -73,46 +74,9 @@ local function frame_onClick(frame, mouseButton)
 			)
 			widget:ApplyTemplate(quickAddTemplate)
 		end
-	elseif mouseButton == "RightButton" then
-		local menu = {}
-
-		local templates = {
-			text = L["Apply Template"],
-			notCheckable = true,
-			hasArrow = true,
-			menuList = {},
-		}
-		for templateName, templateInfo in addon.pairs(addon.db.global.templates) do
-			if templateInfo.enabled then
-				tinsert(templates.menuList, {
-					text = templateName,
-					notCheckable = true,
-					func = function()
-						private.ApplyTemplateToSlot(
-							private.status.ruleName,
-							private.status.tabID,
-							widget:GetUserData("slotID"),
-							templateName
-						)
-						widget:ApplyTemplate(templateName)
-						CloseDropDownMenus()
-					end,
-				})
-			end
-		end
-		tinsert(templates.menuList, {
-			text = L["Add Template"],
-			notCheckable = true,
-			func = function()
-				private.status.tabGroup:SelectTab("templates")
-				private.status.templateGroup:SetGroup("__new")
-				CloseDropDownMenus()
-			end,
-		})
-		tinsert(menu, templates)
-
-		if templateName then
-			tinsert(menu, {
+	elseif mouseButton == "RightButton" and templateName then
+		local menu = {
+			{
 				text = L["Edit Template"],
 				notCheckable = true,
 				func = function()
@@ -120,9 +84,8 @@ local function frame_onClick(frame, mouseButton)
 					private.status.templateGroup:SetGroup(templateName)
 					CloseDropDownMenus()
 				end,
-			})
-
-			tinsert(menu, {
+			},
+			{
 				text = L["Clear Slot"],
 				notCheckable = true,
 				func = function()
@@ -130,16 +93,15 @@ local function frame_onClick(frame, mouseButton)
 					widget:ApplyTemplate()
 					CloseDropDownMenus()
 				end,
-			})
-		end
-
-		tinsert(menu, {
-			text = CLOSE,
-			notCheckable = true,
-			func = function()
-				CloseDropDownMenus()
-			end,
-		})
+			},
+			{
+				text = CLOSE,
+				notCheckable = true,
+				func = function()
+					CloseDropDownMenus()
+				end,
+			},
+		}
 
 		EasyMenu(menu, widget.contextMenu, frame, frame:GetWidth(), frame:GetHeight(), "MENU")
 	end

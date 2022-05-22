@@ -15,18 +15,18 @@ local function GetTemplates()
 	local templates = {}
 	local order = {}
 
+	templates["__none"] = NONE
+	tinsert(order, "__none")
+
+	templates["__clear"] = L["Clear Slot"]
+	tinsert(order, "__clear")
+
 	for templateName, templateInfo in addon.pairs(addon.db.global.templates) do
 		if templateInfo.enabled then
 			templates[templateName] = templateName
 			tinsert(order, templateName)
 		end
 	end
-
-	templates["__clear"] = L["Clear Slot"]
-	tinsert(order, "__clear")
-
-	templates["__none"] = NONE
-	tinsert(order, "__none")
 
 	return templates, order
 end

@@ -72,6 +72,38 @@ local function ConfirmDeleteTemplate(templateName)
 	coroutine.resume(private.co)
 end
 
+local function DuplicateTemplate(templateName)
+	templateName = templateName or private.status.templateName
+	local templateGroup = private.status.templateGroup
+	local newTemplateName = addon.EnumerateString(templateName, private.TemplateExists)
+
+	addon.db.global.templates[newTemplateName] = addon.CloneTable(addon.db.global.templates[templateName])
+
+	templateGroup:SetGroupList(GetTemplates())
+	templateGroup:SetGroup(newTemplateName)
+end
+
+local function RenameTemplate(templateName, newTemplateName)
+	templateName = templateName or private.status.templateName
+	local templateGroup = private.status.templateGroup
+	local statusLabel = private.GetChild(private.status.templateScrollFrame, "statusLabel")
+
+	if not newTemplateName or newTemplateName == "" then
+		return statusLabel:SetText(L["Missing template name"])
+	elseif templateName == newTemplateName then
+		return
+	elseif private.TemplateExists(newTemplateName) then
+		return statusLabel:SetText(L.TemplateExists(newTemplateName))
+	end
+
+	addon.db.global.templates[newTemplateName] = addon.CloneTable(addon.db.global.templates[templateName])
+
+	DeleteTemplate(templateName)
+
+	templateGroup:SetGroupList(GetTemplates())
+	templateGroup:SetGroup(newTemplateName)
+end
+
 private.TemplateExists = function(templateName)
 	return addon.db.global.templates[templateName].enabled
 end
@@ -158,7 +190,9 @@ local function TemplateContent()
 	templateNameEditBox:SetLabel(NAME)
 	templateNameEditBox:SetText(private.status.templateName)
 	templateNameEditBox:DisableButton(true)
-	--templateNameEditBox:SetCallback("OnEnterPressed", templateNameEditBox_OnEnterPressed)
+	templateNameEditBox:SetCallback("OnEnterPressed", function(_, _, value)
+		RenameTemplate(private.status.templateName, value)
+	end)
 
 	local itemIcon = AceGUI:Create("Icon")
 	itemIcon:SetUserData("elementName", "itemIcon")
@@ -216,6 +250,13 @@ local function TemplateContent()
 		private.status.tabGroup:SelectTab("rules")
 	end)
 
+	local duplicateTemplateButton = AceGUI:Create("Button")
+	duplicateTemplateButton:SetUserData("elementName", "duplicateTemplateButton")
+	duplicateTemplateButton:SetText(L["Duplicate"])
+	duplicateTemplateButton:SetCallback("OnClick", function()
+		DuplicateTemplate()
+	end)
+
 	local deleteTemplateButton = AceGUI:Create("Button")
 	deleteTemplateButton:SetUserData("elementName", "deleteTemplateButton")
 	deleteTemplateButton:SetText(DELETE)
@@ -235,6 +276,7 @@ local function TemplateContent()
 		itemIDEditBox,
 		stackSizeEditBox,
 		quickAddTemplateButton,
+		duplicateTemplateButton,
 		deleteTemplateButton,
 		statusLabel,
 	})
