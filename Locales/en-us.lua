@@ -14,7 +14,7 @@ L["Add Template"] = true
 L["Apply rule to guilds"] = true
 L["Apply Template"] = true
 L["Cannot add soulbound item to template"] = true
-L["Cannot add soulbound item to list rule"] = true
+L["Cannot add soulbound item to rule"] = true
 L["Clear Slot"] = true
 L["Control+click to remove from list"] = true
 L["Duplicate"] = true
@@ -58,4 +58,7 @@ L["Invalid template name"] = true
 L["Missing template name"] = true
 L.TemplateExists = function(templateName)
 	return format('Template "%s" already exists', templateName)
+end
+L.DeleteTemplate = function(templateName)
+	return format('Are you sure you want to delete the template "%s"?', templateName)
 end

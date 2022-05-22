@@ -22,4 +22,12 @@ private.LoadTab = function(scrollFrame, tabID)
 		end
 	end
 	scrollFrame:DoLayout()
+
+	local statusLabel = AceGUI:Create("Label")
+	statusLabel:SetUserData("elementName", "statusLabel")
+	statusLabel:SetFullWidth(true)
+	statusLabel:SetColor(1, 0, 0)
+	statusLabel:SetText()
+
+	private.AddChildren(scrollFrame, { statusLabel })
 end

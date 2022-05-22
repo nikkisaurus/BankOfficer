@@ -8,9 +8,11 @@ local function GetTemplates()
 	local templates = {}
 	local order = {}
 
-	for templateName, _ in addon.pairs(addon.db.global.templates) do
-		templates[templateName] = templateName
-		tinsert(order, templateName)
+	for templateName, templateInfo in addon.pairs(addon.db.global.templates) do
+		if templateInfo.enabled then
+			templates[templateName] = templateName
+			tinsert(order, templateName)
+		end
 	end
 
 	templates["__new"] = L["Add Template"]
@@ -22,7 +24,7 @@ end
 -- Database
 local function AddTemplate(templateNameEditBox, _, templateName)
 	local templateGroup = private.status.templateGroup
-	local statusLabel = private.GetChild(templateGroup, "statusLabel")
+	local statusLabel = private.GetChild(private.status.templateScrollFrame, "statusLabel")
 
 	if not templateName or templateName == "" then
 		return statusLabel:SetText(L["Missing template name"])
@@ -43,6 +45,29 @@ end
 private.AddTemplateFromCursor = function(templateName, itemID)
 	addon.db.global.templates[templateName].enabled = true
 	addon.db.global.templates[templateName].itemID = itemID
+end
+
+local function DeleteTemplate(templateName)
+	wipe(addon.db.global.templates[templateName or private.status.templateName])
+
+	local templateGroup = private.status.templateGroup
+	templateGroup:SetGroupList(GetTemplates())
+	templateGroup:SetGroup()
+	templateGroup:ReleaseChildren()
+end
+
+local function ConfirmDeleteTemplate(templateName)
+	private.CreateCoroutine(function()
+		private.RequestConfirmation(L.DeleteTemplate(templateName or private.status.templateName))
+
+		if not coroutine.yield() then
+			return
+		end
+
+		DeleteTemplate()
+	end)
+
+	coroutine.resume(private.co)
 end
 
 private.TemplateExists = function(templateName)
@@ -187,6 +212,13 @@ local function TemplateContent()
 		private.UpdateTemplateInfo(private.status.templateName, "stackSize", value)
 	end)
 
+	local deleteTemplateButton = AceGUI:Create("Button")
+	deleteTemplateButton:SetUserData("elementName", "deleteTemplateButton")
+	deleteTemplateButton:SetText(DELETE)
+	deleteTemplateButton:SetCallback("OnClick", function()
+		ConfirmDeleteTemplate()
+	end)
+
 	local statusLabel = AceGUI:Create("Label")
 	statusLabel:SetUserData("elementName", "statusLabel")
 	statusLabel:SetFullWidth(true)
@@ -195,7 +227,7 @@ local function TemplateContent()
 
 	private.AddChildren(
 		private.status.templateScrollFrame,
-		{ templateNameEditBox, itemIcon, itemIDEditBox, stackSizeEditBox, statusLabel }
+		{ templateNameEditBox, itemIcon, itemIDEditBox, stackSizeEditBox, deleteTemplateButton, statusLabel }
 	)
 end
 
@@ -203,6 +235,10 @@ end
 local function SelectTemplate(templateGroup, _, template)
 	private.status.templateName = template
 	templateGroup:ReleaseChildren()
+
+	if not template then
+		return
+	end
 
 	local scrollContainer = AceGUI:Create("SimpleGroup")
 	scrollContainer:SetUserData("elementName", "scrollContainer")

@@ -38,7 +38,7 @@ local function AddItemIDToList(addItemIDEditBox, _, itemID)
 			return statusLabel:SetText(L["Invalid itemID"])
 		elseif bindType == 1 then
 			addItemIDEditBox:HighlightText()
-			return statusLabel:SetText(L["Cannot add soulbound item to list rule"])
+			return statusLabel:SetText(L["Cannot add soulbound item to rule"])
 		elseif private.ListContainsItemID(ruleName, listName, itemID) then
 			addItemIDEditBox:HighlightText()
 			return statusLabel:SetText(L["ItemID exists in list rule"])

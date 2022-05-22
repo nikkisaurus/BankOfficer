@@ -25,17 +25,17 @@ local function frame_onClick(frame, mouseButton)
 	if mouseButton == "LeftButton" then
 		local cursorType, itemID = GetCursorInfo()
 		ClearCursor()
-		if templateName then
-			print("Move item")
-		elseif cursorType == "item" and itemID then
+		if not templateName and cursorType == "item" and itemID then
 			addon.CacheItem(itemID, function(itemID, addon, private, widget)
 				local itemName, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(itemID)
+				local statusLabel = private.GetChild(private.status.ruleScrollFrame, "statusLabel")
 				local newTemplateName = private.TemplateExists(itemName)
 						and addon.EnumerateString(itemName, private.TemplateExists)
 					or itemName
 				if bindType == 1 then
-					return
+					return statusLabel:SetText(L["Cannot add soulbound item to rule"])
 				end
+				statusLabel:SetText("")
 				private.AddTemplateFromCursor(newTemplateName, itemID)
 				private.ApplyTemplateToSlot(
 					private.status.ruleName,
@@ -43,8 +43,16 @@ local function frame_onClick(frame, mouseButton)
 					widget:GetUserData("slotID"),
 					newTemplateName
 				)
-				widget:ApplyTemplate(newTemplateName)
+				private.status.tabGroup:SelectTab("templates")
+				private.status.templateGroup:SetGroup(newTemplateName)
+				CloseDropDownMenus()
 			end, itemID, addon, private, widget)
+		elseif templateName then
+			if cursorType == "item" and itemID then
+				print("Replace item")
+			else
+				print("Move item")
+			end
 		end
 	elseif mouseButton == "RightButton" then
 		local menu = {}
@@ -55,21 +63,23 @@ local function frame_onClick(frame, mouseButton)
 			hasArrow = true,
 			menuList = {},
 		}
-		for templateName, _ in addon.pairs(addon.db.global.templates) do
-			tinsert(templates.menuList, {
-				text = templateName,
-				notCheckable = true,
-				func = function()
-					private.ApplyTemplateToSlot(
-						private.status.ruleName,
-						private.status.tabID,
-						widget:GetUserData("slotID"),
-						templateName
-					)
-					widget:ApplyTemplate(templateName)
-					CloseDropDownMenus()
-				end,
-			})
+		for templateName, templateInfo in addon.pairs(addon.db.global.templates) do
+			if templateInfo.enabled then
+				tinsert(templates.menuList, {
+					text = templateName,
+					notCheckable = true,
+					func = function()
+						private.ApplyTemplateToSlot(
+							private.status.ruleName,
+							private.status.tabID,
+							widget:GetUserData("slotID"),
+							templateName
+						)
+						widget:ApplyTemplate(templateName)
+						CloseDropDownMenus()
+					end,
+				})
+			end
 		end
 		tinsert(templates.menuList, {
 			text = L["Add Template"],
@@ -101,7 +111,7 @@ local function frame_onClick(frame, mouseButton)
 						"slotID"
 					)] =
 						nil
-					widget:SetUserData("templateName", nil)
+					widget:SetUserData("templateName")
 					widget:ApplyTemplate()
 					CloseDropDownMenus()
 				end,
@@ -132,8 +142,6 @@ local methods = {
 	OnWidthSet = function(widget, width)
 		if widget.frame:GetHeight() ~= width then
 			widget:SetHeight(width)
-
-			-- Scale text
 			widget.label:SetFont([[Fonts\ARIALN.TTF]], width * 0.35, "OUTLINE, MONOCHROME")
 			widget.label:SetWidth(width * 0.9)
 		end
@@ -144,18 +152,21 @@ local methods = {
 			widget:SetUserData("templateName", templateName)
 		end
 
+		widget:SetIcon()
 		if widget:GetUserData("templateName") then
-			local itemID = addon.db.global.templates[widget:GetUserData("templateName")].itemID
-			if itemID then
-				addon.CacheItem(itemID, function(itemID, widget)
-					local itemName, _, _, _, _, _, _, _, _, iconTexture = GetItemInfo(itemID)
-					widget:SetIcon(iconTexture)
-				end, itemID, widget)
+			local template = addon.db.global.templates[widget:GetUserData("templateName")]
+			if template.enabled then
+				if template.itemID then
+					addon.CacheItem(template.itemID, function(itemID, widget)
+						local itemName, _, _, _, _, _, _, _, _, iconTexture = GetItemInfo(itemID)
+						widget:SetIcon(iconTexture)
+					end, template.itemID, widget)
+				else
+					widget:SetIcon(134400)
+				end
 			else
-				widget:SetIcon(134400)
+				widget:SetUserData("templateName")
 			end
-		else
-			widget:SetIcon()
 		end
 
 		widget:SetText()
@@ -176,9 +187,10 @@ local methods = {
 
 	SetText = function(widget)
 		local templateName = widget:GetUserData("templateName")
+		local template = addon.db.global.templates[templateName]
 
-		if templateName then
-			local func = loadstring("return " .. addon.db.global.templates[templateName].stackSize)
+		if templateName and template.enabled then
+			local func = loadstring("return " .. template.stackSize)
 			if type(func) == "function" then
 				local success, userFunc = pcall(func)
 				widget.frame:SetText(success and type(userFunc) == "function" and userFunc())
