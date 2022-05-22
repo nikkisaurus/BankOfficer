@@ -23,7 +23,9 @@ addon.InitializeDatabase = function()
 					lists = {
 						["*"] = {
 							min = nil, -- min restock amount
-							tabs = {}, -- included tabs
+							tabs = {
+								["*"] = {},
+							}, -- included tabs
 							itemIDs = {
 								["*"] = {
 									enabled = false,

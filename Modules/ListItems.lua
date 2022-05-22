@@ -16,11 +16,11 @@ local RestoreStatusLabelTip = function(text)
 	statusLabel:SetColor(1, 0, 0)
 end
 
-local DisableGuildTabFromListItemID = function(ruleName, listName, itemID, guildKey, tab, enabled)
+local DisableGuildTabFromListItemID = function(ruleName, listName, itemID, guildKey, tab, checked)
 	ruleName = ruleName or private.status.ruleName
 	listName = listName or private.status.listName
 	addon.db.global.rules[private.status.ruleName].lists[private.status.listName].itemIDs[itemID].guilds[guildKey][tab] =
-		enabled
+		checked
 end
 
 local LoadGuildSettingsList = function(itemID, itemName, iconTexture)
@@ -58,7 +58,7 @@ local LoadGuildSettingsList = function(itemID, itemName, iconTexture)
 				tabCheckBox:SetValue(
 					addon.db.global.rules[private.status.ruleName].lists[private.status.listName].itemIDs[itemID].guilds[guildKey][i]
 				)
-				tabCheckBox:SetCallback("OnValueChanged", function(_, _, _, checked)
+				tabCheckBox:SetCallback("OnValueChanged", function(_, _, checked)
 					DisableGuildTabFromListItemID(_, _, itemID, guildKey, i, checked)
 				end)
 
