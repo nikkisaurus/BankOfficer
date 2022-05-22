@@ -40,6 +40,11 @@ local function AddTemplate(templateNameEditBox, _, templateName)
 	templateGroup:SetGroup(templateName)
 end
 
+private.AddTemplateFromCursor = function(templateName, itemID)
+	addon.db.global.templates[templateName].enabled = true
+	addon.db.global.templates[templateName].itemID = itemID
+end
+
 private.TemplateExists = function(templateName)
 	return addon.db.global.templates[templateName].enabled
 end
@@ -153,6 +158,8 @@ local function TemplateContent()
 
 				private.UpdateTemplateInfo(private.status.templateName, "itemID", itemID, true)
 			end, itemID, private)
+		else
+			print("Load template to cursor and select rules tab")
 		end
 	end)
 

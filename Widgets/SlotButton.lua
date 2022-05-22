@@ -22,26 +22,30 @@ end
 local function frame_onClick(frame, mouseButton)
 	local widget = frame.obj
 	local templateName = widget:GetUserData("templateName")
-	if mouseButton == "LeftButton" and templateName then
-		print("Move item")
-		--local cursorType, itemID = GetCursorInfo()
-		--ClearCursor()
-		--if cursorType == "item" and itemID then
-		--	addon.CacheItem(itemID, function(itemID, widget)
-		--		local itemName, _, _, _, _, _, _, _, _, iconTexture, _, _, _, bindType = GetItemInfo(itemID)
-		--		if bindType == 1 then
-		--			return
-		--		end
-		--		private.AddItemIDToSlot(
-		--			private.status.ruleName,
-		--			private.status.tabID,
-		--			widget:GetUserData("slotID"),
-		--			itemID
-		--		)
-		--		widget:SetIcon(iconTexture)
-		--		widget:SetText(widget)
-		--	end, itemID, widget)
-		--end
+	if mouseButton == "LeftButton" then
+		local cursorType, itemID = GetCursorInfo()
+		ClearCursor()
+		if templateName then
+			print("Move item")
+		elseif cursorType == "item" and itemID then
+			addon.CacheItem(itemID, function(itemID, addon, private, widget)
+				local itemName, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(itemID)
+				local newTemplateName = private.TemplateExists(itemName)
+						and addon.EnumerateString(itemName, private.TemplateExists)
+					or itemName
+				if bindType == 1 then
+					return
+				end
+				private.AddTemplateFromCursor(newTemplateName, itemID)
+				private.ApplyTemplateToSlot(
+					private.status.ruleName,
+					private.status.tabID,
+					widget:GetUserData("slotID"),
+					newTemplateName
+				)
+				widget:ApplyTemplate(newTemplateName)
+			end, itemID, addon, private, widget)
+		end
 	elseif mouseButton == "RightButton" then
 		local menu = {}
 
@@ -67,6 +71,15 @@ local function frame_onClick(frame, mouseButton)
 				end,
 			})
 		end
+		tinsert(templates.menuList, {
+			text = L["Add Template"],
+			notCheckable = true,
+			func = function()
+				private.status.tabGroup:SelectTab("templates")
+				private.status.templateGroup:SetGroup("__new")
+				CloseDropDownMenus()
+			end,
+		})
 		tinsert(menu, templates)
 
 		if templateName then
