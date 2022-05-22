@@ -122,6 +122,30 @@ private.ListExists = function(listName, ruleName)
 	return addon.db.global.rules[ruleName].lists[listName].min
 end
 
+local function RenameList(ruleName, listName, newListName)
+	ruleName = ruleName or private.status.ruleName
+	listName = listName or private.status.listName
+	local statusLabel = private.GetChild(private.status.ruleScrollFrame, "statusLabel")
+	local treeGroup = private.status.ruleTreeGroup
+
+	if not newListName or newListName == "" then
+		return statusLabel:SetText(L["Missing rule name"])
+	elseif listName == newListName then
+		return
+	elseif private.ListExists(newListName, ruleName) then
+		return statusLabel:SetText(L.ListExists(newListName))
+	end
+
+	addon.db.global.rules[ruleName].lists[newListName] = addon.CloneTable(
+		addon.db.global.rules[ruleName].lists[listName]
+	)
+
+	DeleteList(ruleName, listName)
+
+	treeGroup:SetTree(private.GetTreeList())
+	treeGroup:SelectByPath("lists", newListName)
+end
+
 -- Lists
 local function addListEditBox_OnEnterPressed(addListEditBox, _, listName)
 	private.AddList(private.status.ruleName, listName, addListEditBox)
@@ -171,7 +195,7 @@ end
 
 -- List
 
-private.LoadList = function(e)
+private.LoadList = function()
 	local ruleName = private.status.ruleName
 	local listInfo = addon.db.global.rules[ruleName].lists[private.status.listName]
 
@@ -180,7 +204,9 @@ private.LoadList = function(e)
 	listNameEditBox:SetFullWidth(true)
 	listNameEditBox:DisableButton(true)
 	listNameEditBox:SetText(private.status.listName)
-	listNameEditBox:SetCallback("OnEnterPressed", listNameEditBox_OnEnterPressed)
+	listNameEditBox:SetCallback("OnEnterPressed", function(_, _, value)
+		RenameList(ruleName, private.status.listName, value)
+	end)
 
 	local addItemIDEditBox = AceGUI:Create("EditBox")
 	addItemIDEditBox:SetUserData("elementName", "addItemIDEditBox")
