@@ -100,6 +100,18 @@ local function RenameTemplate(templateName, newTemplateName)
 
 	DeleteTemplate(templateName)
 
+	for ruleName, rule in pairs(addon.db.global.rules) do
+		if rule.type == "tab" then
+			for tabID, slots in pairs(rule.tabs) do
+				for slotID, template in pairs(slots) do
+					if template == templateName then
+						addon.db.global.rules[ruleName].tabs[tabID][slotID] = newTemplateName
+					end
+				end
+			end
+		end
+	end
+
 	templateGroup:SetGroupList(GetTemplates())
 	templateGroup:SetGroup(newTemplateName)
 end

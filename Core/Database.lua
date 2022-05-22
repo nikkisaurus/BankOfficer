@@ -59,14 +59,17 @@ addon.InitializeDatabase = function()
 		},
 	}, true)
 
-	addon.db.global.guilds[addon.GetGuildKey()].tabsPurchased = GetNumGuildBankTabs()
+	local guildKey = addon.GetGuildKey()
+	if guildKey then
+		addon.db.global.guilds[guildKey].tabsPurchased = GetNumGuildBankTabs()
+	end
 end
 
 addon.GetGuildKey = function()
 	local guild = (GetGuildInfo("player"))
 	local realm = GetRealmName()
 
-	return format("%s - %s", guild, realm)
+	return realm and format("%s - %s", guild, realm)
 end
 
 addon.GetGuild = function(guild)
