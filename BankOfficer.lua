@@ -11,8 +11,10 @@ addon.Debug = function()
 
 	local tabGroup = private.GetChild(private.frame, "tabGroup")
 	local ruleGroup = private.GetChild(tabGroup, "ruleGroup")
-	ruleGroup:SetGroup("Born of Blood - List")
-	private.GetChild(ruleGroup, "treeGroup"):SelectByPath("lists", "Enchants")
+	ruleGroup:SetGroup("Born of Blood")
+	private.GetChild(ruleGroup, "treeGroup"):SelectByPath("tab1")
+	--ruleGroup:SetGroup("Born of Blood - List")
+	--private.GetChild(ruleGroup, "treeGroup"):SelectByPath("lists", "Enchants")
 end
 
 addon.OnEnable = function()

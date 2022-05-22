@@ -11,12 +11,24 @@ local function GetSlotID(row, col)
 end
 
 private.LoadTab = function(scrollFrame, tabID)
+	--addon:Unhook(scrollFrame.frame, "OnSizeChanged")
 	for row = 1, ROWS do
 		for col = 1, COLS do
 			local slotButton = AceGUI:Create("BankOfficerSlotButton")
 			slotButton:SetUserData("elementName", "slotButton_" .. GetSlotID(row, col))
-			slotButton:SetSize(40, 40)
+			slotButton:SetRelativeWidth(1 / 14.25)
 			private.AddChildren(scrollFrame, { slotButton })
 		end
 	end
+	scrollFrame:DoLayout()
+	--addon:HookScript(scrollFrame.frame, "OnSizeChanged", function()
+	--	scrollFrame:PauseLayout()
+	--	for row = 1, ROWS do
+	--		for col = 1, COLS do
+	--			local slotButton = private.GetChild(scrollFrame, "slotButton_" .. GetSlotID(row, col))
+	--			slotButton:SetSize(1 / 15)
+	--		end
+	--	end
+	--	scrollFrame:ResumeLayout()
+	--end)
 end

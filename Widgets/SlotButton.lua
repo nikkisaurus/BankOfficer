@@ -40,12 +40,12 @@ end
 local function frame_OnDragStart(frame) end
 
 local methods = {
-	OnAcquire = function(widget)
-		widget:SetSize(40, 40)
-	end,
+	OnAcquire = function(widget) end,
 
-	SetSize = function(widget, width, height)
-		widget.frame:SetSize(width, height)
+	OnWidthSet = function(widget, width)
+		if widget.frame:GetHeight() ~= width then
+			widget:SetHeight(width)
+		end
 	end,
 }
 
