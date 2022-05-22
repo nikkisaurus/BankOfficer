@@ -191,7 +191,6 @@ local function AddRuleContent()
 	addRuleButton:SetText(ADD)
 	addRuleButton:SetCallback("OnClick", function(_, _, value)
 		AddRule(value, ruleTypeDropdown:GetValue())
-		addRuleButton:ClearFocus()
 	end)
 
 	local statusLabel = AceGUI:Create("Label")
@@ -221,7 +220,17 @@ local function treeGroup_OnGroupSelected(treeGroup, _, path)
 		return
 	end
 
-	if path == "settings" then
+	if rule.type == "tab" and strfind(path, "tab") then
+		private.LoadTab(scrollFrame, gsub(path, "tab", ""))
+	elseif rule.type == "list" and path == "lists" then
+		private.LoadListsContent()
+	elseif rule.type == "list" and strfind(path, "lists") then
+		local _, listName = strsplit("\001", path)
+		private.status.listName = listName
+		private.LoadList()
+	else
+		path = "settings"
+
 		local ruleNameEditBox = AceGUI:Create("EditBox")
 		ruleNameEditBox:SetUserData("elementName", "ruleNameEditBox")
 		ruleNameEditBox:SetFullWidth(true)
@@ -278,14 +287,6 @@ local function treeGroup_OnGroupSelected(treeGroup, _, path)
 		)
 
 		RefreshGuildsDropdown(guildsDropdown)
-	elseif strfind(path, "tab") then
-		private.LoadTab(scrollFrame, gsub(path, "tab", ""))
-	elseif path == "lists" then
-		private.LoadListsContent()
-	elseif strfind(path, "lists") then
-		local _, listName = strsplit("\001", path)
-		private.status.listName = listName
-		private.LoadList()
 	end
 
 	private.status.rulePath = path
@@ -326,7 +327,6 @@ end
 local function SelectRule(ruleGroup, _, rule)
 	ruleGroup:ReleaseChildren()
 	private.status.ruleName = rule
-	private.status.rulePath = nil
 
 	if rule == "__new" then
 		AddRuleContent()
@@ -342,6 +342,10 @@ private.LoadRules = function(tabGroup)
 	ruleGroup:SetUserData("children", {})
 	ruleGroup:SetGroupList(GetRules())
 	ruleGroup:SetCallback("OnGroupSelected", SelectRule)
+
+	if private.status.ruleName then
+		ruleGroup:SetGroup(private.status.ruleName)
+	end
 
 	private.status.ruleGroup = ruleGroup
 	return ruleGroup

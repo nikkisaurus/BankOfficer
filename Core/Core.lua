@@ -36,7 +36,6 @@ private.InitializeGUI = function()
 	frame:SetUserData("children", {})
 	frame:SetTitle(L[addonName])
 	frame:SetLayout("Fill")
-	--frame:EnableResize(false)
 	frame:SetWidth(1000)
 	frame:SetHeight(700)
 	frame:SetCallback("OnShow", frame_OnShow)
@@ -51,20 +50,25 @@ private.InitializeGUI = function()
 	tabGroup:SetTabs({
 		{
 			value = "rules",
-			text = "Rules",
+			text = L["Rules"],
+		},
+		{
+			value = "templates",
+			text = L["Templates"],
 		},
 		{
 			value = "settings",
-			text = "Settings",
+			text = SETTINGS,
 			disabled = true,
 		},
 		{
 			value = "help",
-			text = "Help",
+			text = L["Help"],
 			disabled = true,
 		},
 	})
 	tabGroup:SetCallback("OnGroupSelected", LoadTab)
+	private.status.tabGroup = tabGroup
 
 	private.AddChildren(frame, { tabGroup })
 end
@@ -124,7 +128,7 @@ private.RequestConfirmation = function(message)
 end
 
 -- GUI Control
-local LoadGUI = function()
+private.LoadGUI = function()
 	private.frame:Show()
 
 	if private.status.tabName == "Rules" and private.status.ruleName then
@@ -133,7 +137,7 @@ local LoadGUI = function()
 end
 
 addon.HandleSlashCommand = function()
-	LoadGUI()
+	private.LoadGUI()
 end
 
 -- Tooltips

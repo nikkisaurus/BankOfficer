@@ -6,66 +6,214 @@ local AceGUI = LibStub("AceGUI-3.0")
 local Type = "BankOfficerSlotButton"
 local Version = 1
 
-local SLOTBUTTON_TEXTURE = [[INTERFACE\ADDONS\BANKOFFICER\MEDIA\UI-SLOT-BACKGROUND]]
+private.SLOTBUTTON_TEXTURE = [[INTERFACE\ADDONS\BANKOFFICER\MEDIA\UI-SLOT-BACKGROUND]]
+local SLOTBUTTON_HIGHLIGHTTEXTURE = [[INTERFACE\BUTTONS\ButtonHilight-Square]]
 
-local scanner = CreateFrame("GameTooltip", "BankOfficerScanner", UIParent, "GameTooltipTemplate")
-scanner:SetOwner(WorldFrame, "ANCHOR_NONE")
-local function IsSoulbound(itemID)
-	local itemName, itemLink, itemQuality, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, sellPrice, classID, subclassID, bindType, expacID, setID, isCraftingReagent =
-		GetItemInfo(
-			itemID
-		)
-
-	scanner:ClearLines()
-	scanner:SetHyperlink(itemLink)
-	for i = 1, scanner:NumLines() do
-		scanner:AddFontStrings(
-			scanner:CreateFontString("$parentTextLeft" .. i, nil, "GameTooltipText"),
-			scanner:CreateFontString("$parentTextRight" .. i, nil, "GameTooltipText")
-		)
-
-		if
-			_G["BankOfficerScannerTextLeft" .. i]
-			and _G["BankOfficerScannerTextLeft" .. i]:GetText() == ITEM_BIND_ON_PICKUP
-		then
-			return true
-		end
-	end
+-- Database
+private.ApplyTemplateToSlot = function(ruleName, tabID, slotID, template)
+	addon.db.global.rules[ruleName].tabs[tabID][slotID] = template
 end
 
+private.ClearSlot = function(ruleName, tabID, slotID)
+	addon.db.global.rules[ruleName].tabs[tabID][slotID] = nil
+end
+
+-- Frame
 local function frame_onClick(frame, mouseButton)
-	print(mouseButton)
+	local widget = frame.obj
+	local templateName = widget:GetUserData("templateName")
+	if mouseButton == "LeftButton" and templateName then
+		print("Move item")
+		--local cursorType, itemID = GetCursorInfo()
+		--ClearCursor()
+		--if cursorType == "item" and itemID then
+		--	addon.CacheItem(itemID, function(itemID, widget)
+		--		local itemName, _, _, _, _, _, _, _, _, iconTexture, _, _, _, bindType = GetItemInfo(itemID)
+		--		if bindType == 1 then
+		--			return
+		--		end
+		--		private.AddItemIDToSlot(
+		--			private.status.ruleName,
+		--			private.status.tabID,
+		--			widget:GetUserData("slotID"),
+		--			itemID
+		--		)
+		--		widget:SetIcon(iconTexture)
+		--		widget:SetText(widget)
+		--	end, itemID, widget)
+		--end
+	elseif mouseButton == "RightButton" then
+		local menu = {}
+
+		local templates = {
+			text = L["Apply Template"],
+			notCheckable = true,
+			hasArrow = true,
+			menuList = {},
+		}
+		for templateName, _ in addon.pairs(addon.db.global.templates) do
+			tinsert(templates.menuList, {
+				text = templateName,
+				notCheckable = true,
+				func = function()
+					private.ApplyTemplateToSlot(
+						private.status.ruleName,
+						private.status.tabID,
+						widget:GetUserData("slotID"),
+						templateName
+					)
+					widget:ApplyTemplate(templateName)
+					CloseDropDownMenus()
+				end,
+			})
+		end
+		tinsert(menu, templates)
+
+		if templateName then
+			tinsert(menu, {
+				text = L["Edit Template"],
+				notCheckable = true,
+				func = function()
+					private.status.tabGroup:SelectTab("templates")
+					private.status.templateGroup:SetGroup(templateName)
+					CloseDropDownMenus()
+				end,
+			})
+
+			tinsert(menu, {
+				text = L["Clear Slot"],
+				notCheckable = true,
+				func = function()
+					addon.db.global.rules[widget:GetUserData("ruleName")].tabs[widget:GetUserData("tabID")][widget:GetUserData(
+						"slotID"
+					)] =
+						nil
+					widget:SetUserData("templateName", nil)
+					widget:ApplyTemplate()
+					CloseDropDownMenus()
+				end,
+			})
+		end
+
+		tinsert(menu, {
+			text = CLOSE,
+			notCheckable = true,
+			func = function()
+				CloseDropDownMenus()
+			end,
+		})
+
+		EasyMenu(menu, widget.contextMenu, frame, frame:GetWidth(), frame:GetHeight(), "MENU")
+	end
 end
 
 local function frame_OnDragStart(frame) end
 
 local methods = {
-	OnAcquire = function(widget) end,
+	OnAcquire = function(widget)
+		widget.label:SetFont([[Fonts\ARIALN.TTF]], 14, "OUTLINE, MONOCHROME")
+		widget.label:SetJustifyH("RIGHT")
+		widget.label:SetPoint("BOTTOM", 0, 6)
+	end,
 
 	OnWidthSet = function(widget, width)
 		if widget.frame:GetHeight() ~= width then
 			widget:SetHeight(width)
+
+			-- Scale text
+			widget.label:SetFont([[Fonts\ARIALN.TTF]], width * 0.35, "OUTLINE, MONOCHROME")
+			widget.label:SetWidth(width * 0.9)
 		end
+	end,
+
+	ApplyTemplate = function(widget, templateName)
+		if templateName then
+			widget:SetUserData("templateName", templateName)
+		end
+
+		if widget:GetUserData("templateName") then
+			local itemID = addon.db.global.templates[widget:GetUserData("templateName")].itemID
+			if itemID then
+				addon.CacheItem(itemID, function(itemID, widget)
+					local itemName, _, _, _, _, _, _, _, _, iconTexture = GetItemInfo(itemID)
+					widget:SetIcon(iconTexture)
+				end, itemID, widget)
+			else
+				widget:SetIcon(134400)
+			end
+		else
+			widget:SetIcon()
+		end
+
+		widget:SetText()
+	end,
+
+	LoadSlotInfo = function(widget)
+		if widget:GetUserData("templateName") then
+			widget:ApplyTemplate()
+		else
+			widget:SetIcon()
+			widget:SetText()
+		end
+	end,
+
+	SetIcon = function(widget, icon)
+		widget.frame:SetNormalTexture(icon or private.SLOTBUTTON_TEXTURE)
+	end,
+
+	SetText = function(widget)
+		local templateName = widget:GetUserData("templateName")
+
+		if templateName then
+			local func = loadstring("return " .. addon.db.global.templates[templateName].stackSize)
+			if type(func) == "function" then
+				local success, userFunc = pcall(func)
+				widget.frame:SetText(success and type(userFunc) == "function" and userFunc())
+			end
+		else
+			widget.frame:SetText(" ")
+		end
+	end,
+
+	SetSlotID = function(widget, ruleName, tabID, slotID)
+		widget:SetUserData("ruleName", ruleName)
+		widget:SetUserData("tabID", tabID)
+		widget:SetUserData("slotID", slotID)
+		widget:SetUserData("templateName", addon.db.global.rules[ruleName].tabs[tabID][slotID])
+
+		widget:LoadSlotInfo()
 	end,
 }
 
 local function Constructor()
 	local frame = CreateFrame("Button", Type .. AceGUI:GetNextWidgetNum(Type), UIParent)
 	frame:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+	frame:SetText(" ")
 	frame:SetPushedTextOffset(0, 0)
-	frame:SetNormalFontObject(NumberFontNormal)
 	frame:SetScript("OnClick", frame_onClick)
 
 	frame:SetMovable(true)
 	frame:RegisterForDrag("LeftButton")
 	frame:SetScript("OnDragStart", frame_OnDragStart)
 
-	frame:SetNormalTexture(SLOTBUTTON_TEXTURE)
+	frame:SetNormalTexture(private.SLOTBUTTON_TEXTURE)
+	frame:SetHighlightTexture(SLOTBUTTON_HIGHLIGHTTEXTURE)
+
+	local contextMenu = CreateFrame(
+		"Frame",
+		Type .. AceGUI:GetNextWidgetNum(Type) .. "ContextMenu",
+		frame,
+		"UIDropDownMenuTemplate"
+	)
 
 	local widget = {
 		frame = frame,
+		label = frame:GetFontString(),
+		contextMenu = contextMenu,
 		type = Type,
 	}
+
+	frame.obj = widget
 
 	for method, func in pairs(methods) do
 		widget[method] = func

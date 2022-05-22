@@ -2,4 +2,5 @@
     <Script file="ListItems.lua"/>
     <Script file="Lists.lua"/>
     <Script file="SlotButton.lua"/>
+    <Script file="Templates.lua"/>
 </Ui>

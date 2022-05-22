@@ -11,12 +11,14 @@ local function GetSlotID(row, col)
 end
 
 private.LoadTab = function(scrollFrame, tabID)
+	private.status.tabID = tabID
 	for row = 1, ROWS do
 		for col = 1, COLS do
 			local slotButton = AceGUI:Create("BankOfficerSlotButton")
 			slotButton:SetUserData("elementName", "slotButton_" .. GetSlotID(row, col))
 			slotButton:SetRelativeWidth(1 / 14.25)
 			private.AddChildren(scrollFrame, { slotButton })
+			slotButton:SetSlotID(private.status.ruleName, tabID, GetSlotID(row, col))
 		end
 	end
 	scrollFrame:DoLayout()

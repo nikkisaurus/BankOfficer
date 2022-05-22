@@ -10,7 +10,11 @@ addon.InitializeDatabase = function()
 	addon.db = LibStub("AceDB-3.0"):New("BankOfficerDB", {
 		global = {
 			templates = {
-				["*"] = {},
+				["*"] = {
+					enabled = false,
+					itemID = nil,
+					stackSize = addon.stack,
+				},
 			},
 			settings = {
 				frameScale = 1,
@@ -19,13 +23,12 @@ addon.InitializeDatabase = function()
 				["*"] = {
 					type = nil, -- tab|list
 					guilds = {},
-					tabs = {},
+					tabs = {
+						["*"] = {},
+					},
 					lists = {
 						["*"] = {
 							min = nil, -- min restock amount
-							tabs = {
-								["*"] = {},
-							}, -- included tabs
 							itemIDs = {
 								["*"] = {
 									enabled = false,
@@ -43,7 +46,7 @@ addon.InitializeDatabase = function()
 										},
 									},
 								},
-							}, -- itemIDs this list is applied to
+							},
 						},
 					},
 				},
@@ -51,18 +54,6 @@ addon.InitializeDatabase = function()
 			guilds = {
 				["*"] = {
 					tabsPurchased = false,
-					settings = {},
-					tabs = {
-						["*"] = {
-							slots = {
-								["*"] = {
-									itemID = false,
-									stack = addon.stack,
-									template = false,
-								},
-							},
-						},
-					},
 				},
 			},
 		},

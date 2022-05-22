@@ -7,14 +7,17 @@ private.CreateCoroutine = function(func)
 end
 
 addon.Debug = function()
-	private.frame:Show()
-
+	private.LoadGUI()
 	local tabGroup = private.GetChild(private.frame, "tabGroup")
-	local ruleGroup = private.GetChild(tabGroup, "ruleGroup")
-	ruleGroup:SetGroup("Born of Blood")
-	private.GetChild(ruleGroup, "treeGroup"):SelectByPath("tab1")
-	--ruleGroup:SetGroup("Born of Blood - List")
-	--private.GetChild(ruleGroup, "treeGroup"):SelectByPath("lists", "Enchants")
+
+	private.status.ruleGroup:SetGroup("Born of Blood")
+	private.status.ruleTreeGroup:SelectByPath("tab1")
+
+	--private.status.ruleGroup:SetGroup("Born of Blood - List")
+	--private.status.ruleTreeGroup:SelectByPath("lists", "Enchants")
+
+	--private.status.tabGroup:SelectTab("templates")
+	--private.status.templateGroup:SetGroup("Test")
 end
 
 addon.OnEnable = function()
