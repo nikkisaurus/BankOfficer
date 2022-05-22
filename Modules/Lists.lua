@@ -20,36 +20,33 @@ local listTabs = {
 }
 
 -- Database
-local function AddItemIDToList(addItemIDEditBox, _, itemID)
-	itemID = tonumber(itemID)
-	local ruleName = private.status.ruleName
-	local listName = private.status.listName
+local function AddItemIDToList(addItemIDEditBox, _, value)
+	local itemID = GetItemInfoInstant(value)
 	local statusLabel = private.GetChild(private.status.ruleScrollFrame, "statusLabel")
 
-	if not itemID then
+	if not value or value == "" then
+		addItemIDEditBox:HighlightText()
+		return statusLabel:SetText(L["Missing itemID"])
+	elseif not itemID or itemID == "" then
 		addItemIDEditBox:HighlightText()
 		return statusLabel:SetText(L["Invalid itemID"])
+	elseif bindType == 1 then
+		addItemIDEditBox:HighlightText()
+		return statusLabel:SetText(L["Cannot add soulbound item to rule"])
+	elseif private.ListContainsItemID(private.status.ruleName, private.status.listName, itemID) then
+		addItemIDEditBox:HighlightText()
+		return statusLabel:SetText(L["ItemID exists in list rule"])
 	end
 
-	addon.CacheItem(itemID, function(ruleName, listName, itemID, statusLabel)
-		local itemName, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(itemID)
-		if not itemName then
-			addItemIDEditBox:HighlightText()
-			return statusLabel:SetText(L["Invalid itemID"])
-		elseif bindType == 1 then
-			addItemIDEditBox:HighlightText()
-			return statusLabel:SetText(L["Cannot add soulbound item to rule"])
-		elseif private.ListContainsItemID(ruleName, listName, itemID) then
-			addItemIDEditBox:HighlightText()
-			return statusLabel:SetText(L["ItemID exists in list rule"])
-		end
+	addon.CacheItem(itemID, function(itemID, private, addItemIDEditBox)
+		local itemName, _, _, _, _, _, _, _, _, iconTexture, _, _, _, bindType = GetItemInfo(itemID)
 
-		addon.db.global.rules[ruleName].lists[listName].itemIDs[itemID].enabled = true
-		statusLabel:SetText("")
+		addon.db.global.rules[private.status.ruleName].lists[private.status.listName].itemIDs[itemID].enabled = true
+		private.GetChild(private.status.ruleScrollFrame, "statusLabel"):SetText("")
 		addItemIDEditBox:SetText("")
 		addItemIDEditBox:ClearFocus()
 		private.LoadItemIDList()
-	end, ruleName, listName, itemID, statusLabel)
+	end, itemID, private, addItemIDEditBox)
 end
 
 private.AddList = function(ruleName, listName)

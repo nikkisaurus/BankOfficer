@@ -31,7 +31,7 @@ local function AddTemplate(templateNameEditBox, _, templateName)
 	elseif private.TemplateExists(templateName) then
 		templateNameEditBox:HighlightText()
 		return statusLabel:SetText(L.TemplateExists(templateName))
-	elseif templateName == "__new" then
+	elseif templateName == "__new" or templateName == "__clear" or templateName == "__none" then
 		templateNameEditBox:HighlightText()
 		return statusLabel:SetText(L["Invalid template name"])
 	end
@@ -48,7 +48,9 @@ private.AddTemplateFromCursor = function(templateName, itemID)
 end
 
 local function DeleteTemplate(templateName)
-	wipe(addon.db.global.templates[templateName or private.status.templateName])
+	addon.db.global.templates[templateName or private.status.templateName].enabled = false
+	addon.db.global.templates[templateName or private.status.templateName].itemID = nil
+	addon.db.global.templates[templateName or private.status.templateName].stackSize = addon.stack
 
 	local templateGroup = private.status.templateGroup
 	templateGroup:SetGroupList(GetTemplates())
@@ -120,24 +122,18 @@ end
 
 -- Template content
 local function itemIDEditBox_OnEnterPressed(itemIDEditBox, _, value)
-	local itemID = tonumber(value)
+	local itemID = GetItemInfoInstant(value)
 	local statusLabel = private.GetChild(private.status.templateScrollFrame, "statusLabel")
 
 	if not value or value == "" then
 		itemIDEditBox:HighlightText()
 		return statusLabel:SetText(L["Missing itemID"])
-	elseif not itemID then
+	elseif not itemID or itemID == "" then
 		itemIDEditBox:HighlightText()
 		return statusLabel:SetText(L["Invalid itemID"])
-	else
-		itemID = GetItemInfoInstant(itemID)
-		if not itemID or itemID == "" then
-			itemIDEditBox:HighlightText()
-			return statusLabel:SetText(L["Invalid itemID"])
-		elseif itemID == addon.db.global.templates[private.status.templateName].itemID then
-			itemIDEditBox:ClearFocus()
-			return statusLabel:SetText("")
-		end
+	elseif itemID == addon.db.global.templates[private.status.templateName].itemID then
+		itemIDEditBox:ClearFocus()
+		return statusLabel:SetText("")
 	end
 
 	addon.CacheItem(itemID, function(itemID, private, itemIDEditBox)
@@ -212,6 +208,14 @@ local function TemplateContent()
 		private.UpdateTemplateInfo(private.status.templateName, "stackSize", value)
 	end)
 
+	local quickAddTemplateButton = AceGUI:Create("Button")
+	quickAddTemplateButton:SetUserData("elementName", "quickAddTemplateButton")
+	quickAddTemplateButton:SetText(L["Quick-add"])
+	quickAddTemplateButton:SetCallback("OnClick", function()
+		private.status.quickAddTemplate = private.status.templateName
+		private.status.tabGroup:SelectTab("rules")
+	end)
+
 	local deleteTemplateButton = AceGUI:Create("Button")
 	deleteTemplateButton:SetUserData("elementName", "deleteTemplateButton")
 	deleteTemplateButton:SetText(DELETE)
@@ -225,10 +229,15 @@ local function TemplateContent()
 	statusLabel:SetColor(1, 0, 0)
 	statusLabel:SetText()
 
-	private.AddChildren(
-		private.status.templateScrollFrame,
-		{ templateNameEditBox, itemIcon, itemIDEditBox, stackSizeEditBox, deleteTemplateButton, statusLabel }
-	)
+	private.AddChildren(private.status.templateScrollFrame, {
+		templateNameEditBox,
+		itemIcon,
+		itemIDEditBox,
+		stackSizeEditBox,
+		quickAddTemplateButton,
+		deleteTemplateButton,
+		statusLabel,
+	})
 end
 
 -- Load

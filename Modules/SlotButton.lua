@@ -10,8 +10,49 @@ local function GetSlotID(row, col)
 	return format("%d.%d", row, col)
 end
 
+-- Lists
+local function GetTemplates()
+	local templates = {}
+	local order = {}
+
+	for templateName, templateInfo in addon.pairs(addon.db.global.templates) do
+		if templateInfo.enabled then
+			templates[templateName] = templateName
+			tinsert(order, templateName)
+		end
+	end
+
+	templates["__clear"] = L["Clear Slot"]
+	tinsert(order, "__clear")
+
+	templates["__none"] = NONE
+	tinsert(order, "__none")
+
+	return templates, order
+end
+
+-- Load
 private.LoadTab = function(scrollFrame, tabID)
 	private.status.tabID = tabID
+
+	local quickAddTemplateDropdown = AceGUI:Create("Dropdown")
+	quickAddTemplateDropdown:SetUserData("elementName", "quickAddTemplateDropdown")
+	quickAddTemplateDropdown:SetFullWidth(true)
+	quickAddTemplateDropdown:SetList(GetTemplates())
+	quickAddTemplateDropdown:SetLabel(L["Quick-add template"])
+	quickAddTemplateDropdown:SetCallback("OnValueChanged", function(_, _, value)
+		private.status.quickAddTemplate = value ~= "__none" and value
+		if value == "__none" then
+			quickAddTemplateDropdown:SetValue()
+		end
+	end)
+
+	private.AddChildren(scrollFrame, { quickAddTemplateDropdown })
+
+	if private.status.quickAddTemplate then
+		quickAddTemplateDropdown:SetValue(private.status.quickAddTemplate)
+	end
+
 	for row = 1, ROWS do
 		for col = 1, COLS do
 			local slotButton = AceGUI:Create("BankOfficerSlotButton")

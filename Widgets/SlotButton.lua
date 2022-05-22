@@ -23,6 +23,17 @@ local function frame_onClick(frame, mouseButton)
 	local widget = frame.obj
 	local templateName = widget:GetUserData("templateName")
 	if mouseButton == "LeftButton" then
+		local quickAddTemplate = private.status.quickAddTemplate
+		if quickAddTemplate == "__clear" then
+			addon.db.global.rules[widget:GetUserData("ruleName")].tabs[widget:GetUserData("tabID")][widget:GetUserData(
+				"slotID"
+			)] =
+				nil
+			widget:SetUserData("templateName")
+			widget:ApplyTemplate()
+			return
+		end
+
 		local cursorType, itemID = GetCursorInfo()
 		ClearCursor()
 		if not templateName and cursorType == "item" and itemID then
@@ -53,6 +64,14 @@ local function frame_onClick(frame, mouseButton)
 			else
 				print("Move item")
 			end
+		elseif quickAddTemplate then
+			private.ApplyTemplateToSlot(
+				private.status.ruleName,
+				private.status.tabID,
+				widget:GetUserData("slotID"),
+				quickAddTemplate
+			)
+			widget:ApplyTemplate(quickAddTemplate)
 		end
 	elseif mouseButton == "RightButton" then
 		local menu = {}
@@ -107,11 +126,7 @@ local function frame_onClick(frame, mouseButton)
 				text = L["Clear Slot"],
 				notCheckable = true,
 				func = function()
-					addon.db.global.rules[widget:GetUserData("ruleName")].tabs[widget:GetUserData("tabID")][widget:GetUserData(
-						"slotID"
-					)] =
-						nil
-					widget:SetUserData("templateName")
+					widget:ClearSlot()
 					widget:ApplyTemplate()
 					CloseDropDownMenus()
 				end,
@@ -131,6 +146,20 @@ local function frame_onClick(frame, mouseButton)
 end
 
 local function frame_OnDragStart(frame) end
+
+local function frame_OnEnter(frame)
+	local template = addon.db.global.templates[frame.obj:GetUserData("templateName")]
+	if template and template.enabled and template.itemID then
+		addon.CacheItem(template.itemID, function(itemID, private, frame)
+			local _, itemLink = GetItemInfo(itemID)
+			private.ShowHyperlinkTip(itemLink, frame, "ANCHOR_RIGHT")
+		end, template.itemID, private, frame)
+	end
+end
+
+local function frame_OnLeave(frame)
+	private.HideTooltip()
+end
 
 local methods = {
 	OnAcquire = function(widget)
@@ -165,11 +194,19 @@ local methods = {
 					widget:SetIcon(134400)
 				end
 			else
-				widget:SetUserData("templateName")
+				widget:ClearSlot()
 			end
 		end
 
 		widget:SetText()
+	end,
+
+	ClearSlot = function(widget)
+		addon.db.global.rules[widget:GetUserData("ruleName")].tabs[widget:GetUserData("tabID")][widget:GetUserData(
+			"slotID"
+		)] =
+			nil
+		widget:SetUserData("templateName")
 	end,
 
 	LoadSlotInfo = function(widget)
@@ -216,6 +253,8 @@ local function Constructor()
 	frame:SetText(" ")
 	frame:SetPushedTextOffset(0, 0)
 	frame:SetScript("OnClick", frame_onClick)
+	frame:SetScript("OnEnter", frame_OnEnter)
+	frame:SetScript("OnLeave", frame_OnLeave)
 
 	frame:SetMovable(true)
 	frame:RegisterForDrag("LeftButton")
