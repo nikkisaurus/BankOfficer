@@ -23,6 +23,6 @@ end
 addon.SPELLS_CHANGED = function()
 	addon.InitializeDatabase()
 	private.InitializeGUI()
-	--addon.Debug()
+	addon.Debug()
 	addon:UnregisterEvent("SPELLS_CHANGED")
 end

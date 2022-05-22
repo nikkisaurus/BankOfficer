@@ -37,8 +37,8 @@ private.InitializeGUI = function()
 	frame:SetTitle(L[addonName])
 	frame:SetLayout("Fill")
 	frame:EnableResize(false)
-	frame:SetWidth(850)
-	frame:SetHeight(500)
+	frame:SetWidth(1000)
+	frame:SetHeight(550)
 	frame:SetCallback("OnShow", frame_OnShow)
 	frame:Hide()
 	private.frame = frame
@@ -123,6 +123,27 @@ private.RequestConfirmation = function(message)
 	dialog:Show()
 end
 
-addon.HandleSlashCommand = function()
+-- GUI Control
+local LoadGUI = function()
 	private.frame:Show()
+
+	if private.status.tabName == "Rules" and private.status.ruleName then
+		private.status.ruleGroup:SetGroup(private.status.ruleName)
+	end
+end
+
+addon.HandleSlashCommand = function()
+	LoadGUI()
+end
+
+-- Tooltips
+private.ShowHyperlinkTip = function(itemLink, owner, anchor)
+	GameTooltip:SetOwner(owner or private.frame.frame, anchor or "ANCHOR_CURSOR", 0, 0)
+	GameTooltip:SetHyperlink(itemLink)
+	GameTooltip:Show()
+end
+
+private.HideTooltip = function()
+	GameTooltip:ClearLines()
+	GameTooltip:Hide()
 end

@@ -13,6 +13,7 @@ L["Add Rule"] = true
 L["Apply rule to guilds"] = true
 L["Apply list rule to guilds"] = true
 L["Cannot add soulbound item to list rule"] = true
+L["Control+click to remove from list"] = true
 L["Duplicate"] = true
 L["Guilds"] = true
 L["ItemID exists in list rule"] = true

@@ -319,13 +319,14 @@ local function RuleContent()
 	private.AddChildren(scrollContainer, { scrollFrame })
 	private.status.ruleScrollFrame = scrollFrame
 
-	treeGroup:SelectByPath("settings")
+	treeGroup:SelectByPath(private.status.rulePath or "settings")
 end
 
 -- Load
 local function SelectRule(ruleGroup, _, rule)
 	ruleGroup:ReleaseChildren()
 	private.status.ruleName = rule
+	private.status.rulePath = nil
 
 	if rule == "__new" then
 		AddRuleContent()

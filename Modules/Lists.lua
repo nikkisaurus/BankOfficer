@@ -24,7 +24,7 @@ local function AddItemIDToList(addItemIDEditBox, _, itemID)
 	itemID = tonumber(itemID)
 	local ruleName = private.status.ruleName
 	local listName = private.status.listName
-	local statusLabel = private.status.listStatusLabel
+	local statusLabel = private.GetChild(private.status.ruleScrollFrame, "statusLabel")
 
 	if not itemID then
 		addItemIDEditBox:HighlightText()
@@ -44,16 +44,18 @@ local function AddItemIDToList(addItemIDEditBox, _, itemID)
 			return statusLabel:SetText(L["ItemID exists in list rule"])
 		end
 
-		addon.db.global.rules[ruleName].lists[listName].itemIDs[itemID] = true
+		addon.db.global.rules[ruleName].lists[listName].itemIDs[itemID].enabled = true
+		statusLabel:SetText("")
 		addItemIDEditBox:SetText("")
 		addItemIDEditBox:ClearFocus()
+		private.LoadItemIDList()
 	end, ruleName, listName, itemID, statusLabel)
 end
 
 private.AddList = function(ruleName, listName)
-	local ruleName = ruleName or private.status.ruleName
-	local listName = listName or private.status.listName
-	local statusLabel = private.status.listStatusLabel
+	ruleName = ruleName or private.status.ruleName
+	listName = listName or private.status.listName
+	local statusLabel = private.GetChild(private.status.ruleScrollFrame, "statusLabel")
 
 	if not listName or listName == "" then
 		return statusLabel:SetText(L["Missing list name"])
@@ -113,7 +115,7 @@ private.ListContainsItemID = function(ruleName, listName, itemID)
 	ruleName = ruleName or private.status.ruleName
 	listName = listName or private.status.listName
 
-	return addon.db.global.rules[ruleName].lists[listName].itemIDs[itemID]
+	return addon.db.global.rules[ruleName].lists[listName].itemIDs[itemID].enabled
 end
 
 private.ListExists = function(listName, ruleName)
@@ -163,52 +165,22 @@ private.LoadListsContent = function()
 	statusLabel:SetFullWidth(true)
 	statusLabel:SetColor(1, 0, 0)
 	statusLabel:SetText()
-	private.status.listStatusLabel = statusLabel
 
 	private.AddChildren(private.status.ruleScrollFrame, { addListLabel, addListEditBox, addListButton, statusLabel })
 end
 
 -- List
-local function LoadListItemIDs()
-	--itemIDScrollFrame
-	--local listScrollContainer = AceGUI:Create("SimpleGroup")
-	--listScrollContainer:SetUserData("elementName", "listScrollContainer")
-	--listScrollContainer:SetUserData("children", {})
-	--listScrollContainer:SetFullWidth(true)
-	--listScrollContainer:SetFullHeight(true)
-	--listScrollContainer:SetLayout("Fill")
-	--private.AddChildren(private.GetChild(scrollFrame, "listTabGroup"), { listScrollContainer })
-
-	--local listScrollFrame = AceGUI:Create("ScrollFrame")
-	--listScrollFrame:SetUserData("elementName", "listScrollFrame")
-	--listScrollFrame:SetUserData("children", {})
-	--listScrollFrame:SetLayout("Fill")
-	--private.AddChildren(listScrollContainer, { listScrollFrame })
-end
 
 private.LoadList = function(e)
 	local ruleName = private.status.ruleName
 	local listInfo = addon.db.global.rules[ruleName].lists[private.status.listName]
 
-	local minRestockEditBox = AceGUI:Create("EditBox")
-	minRestockEditBox:SetUserData("elementName", "minRestockEditBox")
-	minRestockEditBox:SetRelativeWidth(1 / 3)
-	minRestockEditBox:SetLabel(L["Minimum Restock"])
-	minRestockEditBox:DisableButton(true)
-	minRestockEditBox:SetText(listInfo.min or "")
-	minRestockEditBox:SetCallback("OnEnterPressed", minRestockEditBox_OnEnterPressed)
-
-	local duplicateListButton = AceGUI:Create("Button")
-	duplicateListButton:SetUserData("elementName", "duplicateListButton")
-	duplicateListButton:SetRelativeWidth(1 / 3)
-	duplicateListButton:SetText(L["Duplicate"])
-	duplicateListButton:SetCallback("OnClick", DuplicateList)
-
-	local deleteListButton = AceGUI:Create("Button")
-	deleteListButton:SetUserData("elementName", "deleteListButton")
-	deleteListButton:SetRelativeWidth(1 / 3)
-	deleteListButton:SetText(DELETE)
-	deleteListButton:SetCallback("OnClick", ConfirmDeleteList)
+	local listNameEditBox = AceGUI:Create("EditBox")
+	listNameEditBox:SetUserData("elementName", "listNameEditBox")
+	listNameEditBox:SetFullWidth(true)
+	listNameEditBox:DisableButton(true)
+	listNameEditBox:SetText(private.status.listName)
+	listNameEditBox:SetCallback("OnEnterPressed", listNameEditBox_OnEnterPressed)
 
 	local addItemIDEditBox = AceGUI:Create("EditBox")
 	addItemIDEditBox:SetUserData("elementName", "addItemIDEditBox")
@@ -217,11 +189,19 @@ private.LoadList = function(e)
 	addItemIDEditBox:DisableButton(true)
 	addItemIDEditBox:SetCallback("OnEnterPressed", AddItemIDToList)
 
+	local minRestockEditBox = AceGUI:Create("EditBox")
+	minRestockEditBox:SetUserData("elementName", "minRestockEditBox")
+	minRestockEditBox:SetRelativeWidth(1 / 2)
+	minRestockEditBox:SetLabel(L["Minimum Restock"])
+	minRestockEditBox:DisableButton(true)
+	minRestockEditBox:SetText(listInfo.min or "")
+	minRestockEditBox:SetCallback("OnEnterPressed", minRestockEditBox_OnEnterPressed)
+
 	local itemIDScrollContainer = AceGUI:Create("SimpleGroup")
 	itemIDScrollContainer:SetUserData("elementName", "itemIDScrollContainer")
 	itemIDScrollContainer:SetUserData("children", {})
 	itemIDScrollContainer:SetLayout("Fill")
-	itemIDScrollContainer:SetHeight(200)
+	itemIDScrollContainer:SetHeight(250)
 	itemIDScrollContainer:SetRelativeWidth(1 / 2)
 
 	local itemIDScrollFrame = AceGUI:Create("ScrollFrame")
@@ -229,45 +209,48 @@ private.LoadList = function(e)
 	itemIDScrollFrame:SetUserData("children", {})
 	itemIDScrollFrame:SetLayout("Flow")
 
-	local addGuildDropdown = AceGUI:Create("Dropdown")
-	addGuildDropdown:SetUserData("elementName", "addGuildDropdown")
-	addGuildDropdown:SetRelativeWidth(1 / 2)
-	addGuildDropdown:SetLabel(L["Apply list rule to guilds"])
-	addGuildDropdown:SetList(private.GetGuildList())
-	addGuildDropdown:SetMultiselect(true)
-	addGuildDropdown:SetCallback("OnValueChanged", addGuildDropdown_OnValueChanged)
+	local guildSettingsScrollContainer = AceGUI:Create("SimpleGroup")
+	guildSettingsScrollContainer:SetUserData("elementName", "guildSettingsScrollContainer")
+	guildSettingsScrollContainer:SetUserData("children", {})
+	guildSettingsScrollContainer:SetLayout("Fill")
+	guildSettingsScrollContainer:SetHeight(250)
+	guildSettingsScrollContainer:SetRelativeWidth(1 / 2)
 
-	local addGuildScrollContainer = AceGUI:Create("SimpleGroup")
-	addGuildScrollContainer:SetUserData("elementName", "addGuildScrollContainer")
-	addGuildScrollContainer:SetUserData("children", {})
-	addGuildScrollContainer:SetLayout("Fill")
-	addGuildScrollContainer:SetHeight(200)
-	addGuildScrollContainer:SetRelativeWidth(1 / 2)
+	local guildSettingsScrollFrame = AceGUI:Create("ScrollFrame")
+	guildSettingsScrollFrame:SetUserData("elementName", "guildSettingsScrollFrame")
+	guildSettingsScrollFrame:SetUserData("children", {})
+	guildSettingsScrollFrame:SetLayout("Flow")
 
-	local addGuildScrollFrame = AceGUI:Create("ScrollFrame")
-	addGuildScrollFrame:SetUserData("elementName", "addGuildScrollFrame")
-	addGuildScrollFrame:SetUserData("children", {})
-	addGuildScrollFrame:SetLayout("Flow")
+	local duplicateListButton = AceGUI:Create("Button")
+	duplicateListButton:SetUserData("elementName", "duplicateListButton")
+	duplicateListButton:SetRelativeWidth(1 / 2)
+	duplicateListButton:SetText(L["Duplicate"])
+	duplicateListButton:SetCallback("OnClick", DuplicateList)
+
+	local deleteListButton = AceGUI:Create("Button")
+	deleteListButton:SetUserData("elementName", "deleteListButton")
+	deleteListButton:SetRelativeWidth(1 / 2)
+	deleteListButton:SetText(DELETE)
+	deleteListButton:SetCallback("OnClick", ConfirmDeleteList)
 
 	local statusLabel = AceGUI:Create("Label")
 	statusLabel:SetUserData("elementName", "statusLabel")
 	statusLabel:SetFullWidth(true)
 	statusLabel:SetColor(1, 0, 0)
 	statusLabel:SetText(" ")
-	private.status.listStatusLabel = statusLabel
 
 	private.AddChildren(private.status.ruleScrollFrame, {
+		listNameEditBox,
+		addItemIDEditBox,
 		minRestockEditBox,
+		itemIDScrollContainer,
+		guildSettingsScrollContainer,
+		statusLabel,
 		duplicateListButton,
 		deleteListButton,
-		addItemIDEditBox,
-		addGuildDropdown,
-		itemIDScrollContainer,
-		addGuildScrollContainer,
-		statusLabel,
 	})
 	private.AddChildren(itemIDScrollContainer, { itemIDScrollFrame })
-	private.AddChildren(addGuildScrollContainer, { addGuildScrollFrame })
+	private.AddChildren(guildSettingsScrollContainer, { guildSettingsScrollFrame })
 
-	LoadListItemIDs()
+	private.LoadItemIDList()
 end
