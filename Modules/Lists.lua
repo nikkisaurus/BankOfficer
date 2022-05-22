@@ -98,8 +98,8 @@ local function ConfirmDeleteList(ruleName, listName)
 end
 
 local function DuplicateList(ruleName, listName)
-	listName = listName or private.status.listName
 	ruleName = ruleName or private.status.ruleName
+	listName = listName or private.status.listName
 	local newListName = addon.EnumerateString(listName, private.ListExists, ruleName)
 
 	addon.db.global.rules[ruleName].lists[newListName] = addon.CloneTable(
@@ -225,13 +225,17 @@ private.LoadList = function(e)
 	duplicateListButton:SetUserData("elementName", "duplicateListButton")
 	duplicateListButton:SetRelativeWidth(1 / 2)
 	duplicateListButton:SetText(L["Duplicate"])
-	duplicateListButton:SetCallback("OnClick", DuplicateList)
+	duplicateListButton:SetCallback("OnClick", function()
+		DuplicateList()
+	end)
 
 	local deleteListButton = AceGUI:Create("Button")
 	deleteListButton:SetUserData("elementName", "deleteListButton")
 	deleteListButton:SetRelativeWidth(1 / 2)
 	deleteListButton:SetText(DELETE)
-	deleteListButton:SetCallback("OnClick", ConfirmDeleteList)
+	deleteListButton:SetCallback("OnClick", function()
+		ConfirmDeleteList()
+	end)
 
 	local statusLabel = AceGUI:Create("Label")
 	statusLabel:SetUserData("elementName", "statusLabel")
