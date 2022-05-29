@@ -11,7 +11,7 @@ local AceGUI = LibStub("AceGUI-3.0")
 addon.GetOptionsTabSlot = function(optionsTree, row, col)
 	local tabID = addon.OptionsFrame:GetUserData("selectedTabID")
 	local slotKey = GetSlotKey(row, col)
-	local slotInfo = addon.GetGuild().tabs[tabID].slots[slotKey]
+	local slotInfo = private.GetGuild().tabs[tabID].slots[slotKey]
 	--local Col = mod(col, 2) == 0 and col / 2 or ceil(col / 2) -- Blizzard col
 
 	local slot = AceGUI:Create("BankOfficerSlot")

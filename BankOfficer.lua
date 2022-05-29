@@ -22,6 +22,8 @@ end
 
 addon.OnEnable = function()
 	addon:RegisterEvent("SPELLS_CHANGED")
+	addon:RegisterEvent("GUILDBANKFRAME_OPENED")
+	addon:RegisterEvent("GUILDBANKFRAME_CLOSED")
 	addon:RegisterChatCommand("bo", addon.HandleSlashCommand)
 end
 
@@ -30,4 +32,12 @@ addon.SPELLS_CHANGED = function()
 	private.InitializeGUI()
 	--addon.Debug()
 	addon:UnregisterEvent("SPELLS_CHANGED")
+end
+
+addon.GUILDBANKFRAME_OPENED = function()
+	private.isGuildBankOpen = true
+end
+
+addon.GUILDBANKFRAME_CLOSED = function()
+	private.isGuildBankOpen = false
 end

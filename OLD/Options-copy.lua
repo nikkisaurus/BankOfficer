@@ -21,7 +21,7 @@ local keys = {
 
 local function GetOptionsTree(rule)
 	local tree = {}
-	local guild = addon.GetGuild(rule)
+	local guild = private.GetGuild(rule)
 	for i = 1, MAX_GUILDBANK_TABS do
 		local disable = not guild.tabsPurchased or i > guild.tabsPurchased
 		tinsert(tree, {
@@ -190,7 +190,7 @@ end
 local function GetTabContent(optionsTree, _, tabID)
 	optionsTree:ReleaseChildren()
 
-	local guild = addon.GetGuild(addon.OptionsFrame:GetUserData("selected") or addon.GetGuildKey())
+	local guild = private.GetGuild(addon.OptionsFrame:GetUserData("selected") or private.GetGuildKey())
 
 	if guild.tabsPurchased and tabID <= guild.tabsPurchased then
 		for row = 1, 7 do
@@ -206,7 +206,7 @@ end
 
 local function LoadOptions()
 	local OptionsFrame, children = GetOptionsFrame()
-	children.selectRuleButton:SetValue(addon.GetGuildKey())
+	children.selectRuleButton:SetValue(private.GetGuildKey())
 end
 
 local function AddChild(childName, child)

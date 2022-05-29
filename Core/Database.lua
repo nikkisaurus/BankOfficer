@@ -1,4 +1,4 @@
-local addonName = ...
+local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
@@ -56,22 +56,29 @@ addon.InitializeDatabase = function()
 					tabsPurchased = false,
 				},
 			},
+			scans = {
+				["*"] = {
+					guild = nil,
+					type = nil, -- tab|list
+					restocks = {},
+				},
+			},
 		},
 	}, true)
 
-	local guildKey = addon.GetGuildKey()
+	local guildKey = private.GetGuildKey()
 	if guildKey then
 		addon.db.global.guilds[guildKey].tabsPurchased = GetNumGuildBankTabs()
 	end
 end
 
-addon.GetGuildKey = function()
+private.GetGuildKey = function()
 	local guild = (GetGuildInfo("player"))
 	local realm = GetRealmName()
 
 	return realm and format("%s - %s", guild, realm)
 end
 
-addon.GetGuild = function(guild)
-	return addon.db.global.guilds[guild or addon.GetGuildKey()]
+private.GetGuild = function(guild)
+	return addon.db.global.guilds[guild or private.GetGuildKey()]
 end

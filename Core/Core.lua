@@ -37,7 +37,7 @@ private.InitializeGUI = function()
 	frame:SetTitle(L[addonName])
 	frame:SetLayout("Fill")
 	frame:SetWidth(1000)
-	frame:SetHeight(700)
+	frame:SetHeight(725)
 	frame:SetCallback("OnShow", frame_OnShow)
 	frame:Hide()
 	private.frame = frame
@@ -136,8 +136,18 @@ private.LoadGUI = function()
 	end
 end
 
-addon.HandleSlashCommand = function()
-	private.LoadGUI()
+addon.HandleSlashCommand = function(input)
+	local cmd = { strsplit(" ", input) }
+	if cmd[1] == "scan" then
+		if not private.isGuildBankOpen then
+			return addon:Print(L["Guild bank frame is not open"])
+		else
+			tremove(cmd, 1)
+			private.ScanBank(cmd)
+		end
+	else
+		private.LoadGUI()
+	end
 end
 
 -- Tooltips

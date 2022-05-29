@@ -21,6 +21,7 @@ L["Control+click to remove from list"] = true
 L["Duplicate"] = true
 L["Edit Template"] = true
 L["Enter ItemID:"] = true
+L["Guild bank frame is not open"] = true
 L["Guilds"] = true
 L["Help"] = true
 L["ItemID exists in list rule"] = true

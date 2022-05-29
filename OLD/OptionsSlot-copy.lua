@@ -38,7 +38,7 @@ local function AddSlotItem(widget)
 
 	if cursorType == "item" and itemID and not IsSoulbound(itemID) then
 		addon.CacheItem(itemID, function(widget, cursorType, itemID)
-			addon.GetGuild().tabs[widget:GetUserData("tabID")].slots[widget:GetUserData("slotKey")].itemID = itemID
+			private.GetGuild().tabs[widget:GetUserData("tabID")].slots[widget:GetUserData("slotKey")].itemID = itemID
 			widget:SetItem(itemID)
 		end, widget, cursorType, itemID)
 	end
@@ -66,7 +66,7 @@ local function EditSlot(tabID, slotKey, slotInfo)
 	stackEditBox:SetFullWidth(true)
 	optionsTree:AddChild(stackEditBox)
 	stackEditBox:SetCallback("OnEnterPressed", function(_, _, stack)
-		addon.GetGuild().tabs[tabID].slots[slotKey].stack = stack
+		private.GetGuild().tabs[tabID].slots[slotKey].stack = stack
 		optionsTree:SelectByValue(tabID)
 	end)
 
@@ -114,7 +114,7 @@ local function MoveItem(target)
 	local targetTabID, targetSlotKey, targetSlotInfo =
 		target:GetUserData("tabID"), target:GetUserData("slotKey"), target:GetUserData("slotInfo")
 
-	addon.GetGuild().tabs[targetTabID].slots[targetSlotKey] = {
+	private.GetGuild().tabs[targetTabID].slots[targetSlotKey] = {
 		itemID = sourceSlotInfo.itemID,
 		stack = sourceSlotInfo.stack,
 		template = sourceSlotInfo.template,
@@ -122,7 +122,7 @@ local function MoveItem(target)
 	target:SetSlotData(sourceTabID, sourceSlotKey, sourceSlotInfo)
 
 	if not addon.OptionsFrame:GetUserData("duplicate") then
-		addon.GetGuild().tabs[sourceTabID].slots[sourceSlotKey] = {
+		private.GetGuild().tabs[sourceTabID].slots[sourceSlotKey] = {
 			itemID = targetSlotInfo.itemID,
 			stack = targetSlotInfo.stack,
 			template = targetSlotInfo.template,
@@ -169,10 +169,10 @@ local function frame_onClick(frame, mouseButton)
 		end
 	elseif mouseButton == "RightButton" then
 		if IsShiftKeyDown() then
-			addon.GetGuild().tabs[tabID].slots[slotKey].itemID = false
-			addon.GetGuild().tabs[tabID].slots[slotKey].stack = addon.stack
-			addon.GetGuild().tabs[tabID].slots[slotKey].template = false
-			widget:SetSlotData(tabID, slotKey, addon.GetGuild().tabs[tabID].slots[slotKey])
+			private.GetGuild().tabs[tabID].slots[slotKey].itemID = false
+			private.GetGuild().tabs[tabID].slots[slotKey].stack = addon.stack
+			private.GetGuild().tabs[tabID].slots[slotKey].template = false
+			widget:SetSlotData(tabID, slotKey, private.GetGuild().tabs[tabID].slots[slotKey])
 		elseif itemID then
 			addon.CacheItem(itemID, EditSlot, tabID, slotKey, slotInfo)
 		end
