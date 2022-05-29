@@ -18,6 +18,7 @@ addon.InitializeDatabase = function()
 			},
 			settings = {
 				frameScale = 1,
+				dateFormat = "%x (%I:%M %p)",
 			},
 			rules = {
 				["*"] = {

@@ -34,6 +34,7 @@ L["Missing itemID"] = true
 L["Quick-add"] = true
 L["Quick-add template"] = true
 L["Rules"] = true
+L["Scan Frame"] = true
 L["Stack Size"] = true
 L["Tab"] = true
 L["Templates"] = true
@@ -65,4 +66,8 @@ L.TemplateExists = function(templateName)
 end
 L.DeleteTemplate = function(templateName)
 	return format('Are you sure you want to delete the template "%s"?', templateName)
+end
+
+L.DeleteScan = function(scanID)
+	return format('Are you sure you want to delete the scan "%s"?', date(addon.db.global.settings.dateFormat, scanID))
 end

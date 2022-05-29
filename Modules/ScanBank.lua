@@ -48,11 +48,13 @@ local function ScanList(guild, rule)
 		return addon:Print("Bank is fully stocked") --TODO: localize
 	end
 
-	local scan = addon.db.global.scans[GetTime()]
+	local scanID = time()
+	local scan = addon.db.global.scans[scanID]
 	scan.guild = guild
 	scan.type = "list"
 	scan.restocks = addon.CloneTable(items)
 	addon:Print(format("Scan finished: %d restocks", numRestocks)) --TODO: localize, add rule name
+	private.LoadScanFrame(scanID)
 end
 
 private.ScanBank = function(ruleName)
