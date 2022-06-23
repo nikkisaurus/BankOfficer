@@ -6,6 +6,6 @@
 ## SavedVariables: BankOfficerDB
 
 Libs\lib.xml
-BankOfficer.lua
 Locales\en-us.lua
+BankOfficer.lua
 Modules\embeds.xml

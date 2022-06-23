@@ -1,16 +1,25 @@
 local addonName, private = ...
-local BankOfficer = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
-LibStub("LibAddonUtils-1.0"):Embed(BankOfficer)
-local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
+local BankOfficer = LibStub("AceAddon-3.0"):GetAddon(addonName)
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
-private.addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
-private.locale = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
-private.status = {}
-
-function private:unpack()
-	return self.addon, self.locale, self.status
-end
-
+--[[ OnInitialize ]]
 function BankOfficer:OnInitialize()
 	private:InitializeDatabase()
+	private:InitializeFrame()
+end
+
+--[[ OnEnable ]]
+function BankOfficer:OnEnable()
+	if private.db.global.debug.enabled then
+		C_Timer.After(1, private.StartDebug)
+	end
+end
+
+--[[ StartDebug ]]
+function private:StartDebug()
+	for frame, show in pairs(private.db.global.debug.frames) do
+		if show then
+			private[frame]:Show()
+		end
+	end
 end
