@@ -281,10 +281,14 @@ local function treeGroup_OnGroupSelected(treeGroup, _, path)
 		statusLabel:SetColor(1, 0, 0)
 		statusLabel:SetText()
 
-		private.AddChildren(
-			scrollFrame,
-			{ ruleNameEditBox, ruleTypeDropdown, guildsDropdown, duplicateRuleButton, deleteRuleButton, statusLabel }
-		)
+		private.AddChildren(scrollFrame, {
+			ruleNameEditBox,
+			ruleTypeDropdown,
+			guildsDropdown,
+			duplicateRuleButton,
+			deleteRuleButton,
+			statusLabel,
+		})
 
 		RefreshGuildsDropdown(guildsDropdown)
 	end

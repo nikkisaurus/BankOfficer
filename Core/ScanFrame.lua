@@ -76,15 +76,7 @@ local function LoadListScan()
 	spacer:SetText(" ")
 	spacer:SetFullWidth(true)
 
-	-- TODO: verify user has TSM
-	local exportTSMButton = AceGUI:Create("Button")
-	exportTSMButton:SetUserData("elementName", "exportTSMButton")
-	exportTSMButton:SetText("Export to TSM") --TODO: localize
-	exportTSMButton:SetCallback("OnClick", function()
-		print("export")
-	end)
-
-	private.AddChildren(scrollFrame, { spacer, exportTSMButton })
+	private.AddChildren(scrollFrame, { spacer })
 end
 
 -- Load

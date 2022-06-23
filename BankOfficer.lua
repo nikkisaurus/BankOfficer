@@ -7,19 +7,19 @@ private.CreateCoroutine = function(func)
 end
 
 addon.Debug = function()
-	--private.LoadGUI()
+	private.LoadGUI()
 	--local tabGroup = private.GetChild(private.frame, "tabGroup")
 
 	--private.status.ruleGroup:SetGroup("Born of Blood")
 	--private.status.ruleTreeGroup:SelectByPath("tab1")
 
-	--private.status.ruleGroup:SetGroup("Born of Blood - List")
+	private.status.ruleGroup:SetGroup("Born of Blood - List")
 	--private.status.ruleTreeGroup:SelectByPath("lists", "Enchants")
 
 	--private.status.tabGroup:SelectTab("templates")
 	--private.status.templateGroup:SetGroup("Test")
 
-	private.LoadScanFrame()
+	--private.LoadScanFrame()
 end
 
 addon.OnEnable = function()
@@ -33,7 +33,7 @@ addon.SPELLS_CHANGED = function()
 	addon.InitializeDatabase()
 	private.InitializeGUI()
 	private.InitializeScanFrame()
-	addon.Debug()
+	--addon.Debug()
 	addon:UnregisterEvent("SPELLS_CHANGED")
 end
 
