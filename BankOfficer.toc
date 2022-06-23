@@ -1,13 +1,11 @@
-## Interface: 90200
+## Interface: 90205
 ## Title: Bank Officer
-## Notes: Tools to help guild bank officers maintain stock
+## Notes: Tools to help bank officers maintain guild banks
 ## Author: Nikketa-Hyjal (US)
 ## Version: @project-version@
 ## SavedVariables: BankOfficerDB
 
 Libs\lib.xml
-Locales\en-us.lua
-Core\embeds.xml
-Widgets\embeds.xml
-Modules\embeds.xml
 BankOfficer.lua
+Locales\en-us.lua
+Modules\embeds.xml

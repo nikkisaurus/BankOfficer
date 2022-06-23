@@ -1,46 +1,16 @@
 local addonName, private = ...
-local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
-local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
+local BankOfficer = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
+LibStub("LibAddonUtils-1.0"):Embed(BankOfficer)
+local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
 
-private.CreateCoroutine = function(func)
-	private.co = coroutine.create(func)
+private.addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
+private.locale = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
+private.status = {}
+
+function private:unpack()
+	return self.addon, self.locale, self.status
 end
 
-addon.Debug = function()
-	private.LoadGUI()
-	--local tabGroup = private.GetChild(private.frame, "tabGroup")
-
-	--private.status.ruleGroup:SetGroup("Born of Blood")
-	--private.status.ruleTreeGroup:SelectByPath("tab1")
-
-	private.status.ruleGroup:SetGroup("Born of Blood - List")
-	--private.status.ruleTreeGroup:SelectByPath("lists", "Enchants")
-
-	--private.status.tabGroup:SelectTab("templates")
-	--private.status.templateGroup:SetGroup("Test")
-
-	--private.LoadScanFrame()
-end
-
-addon.OnEnable = function()
-	addon:RegisterEvent("SPELLS_CHANGED")
-	addon:RegisterEvent("GUILDBANKFRAME_OPENED")
-	addon:RegisterEvent("GUILDBANKFRAME_CLOSED")
-	addon:RegisterChatCommand("bo", addon.HandleSlashCommand)
-end
-
-addon.SPELLS_CHANGED = function()
-	addon.InitializeDatabase()
-	private.InitializeGUI()
-	private.InitializeScanFrame()
-	--addon.Debug()
-	addon:UnregisterEvent("SPELLS_CHANGED")
-end
-
-addon.GUILDBANKFRAME_OPENED = function()
-	private.isGuildBankOpen = true
-end
-
-addon.GUILDBANKFRAME_CLOSED = function()
-	private.isGuildBankOpen = false
+function BankOfficer:OnInitialize()
+	private:InitializeDatabase()
 end
