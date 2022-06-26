@@ -12,6 +12,11 @@ function private:InitializeDatabase()
 				},
 			},
 			guilds = {},
+			organize = {
+				["*"] = {
+					["*"] = {},
+				},
+			},
 		},
 	}, true)
 

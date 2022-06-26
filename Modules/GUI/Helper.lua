@@ -5,6 +5,7 @@ local AceGUI = LibStub("AceGUI-3.0")
 
 --[[ Embed Methods ]]
 local methods = {
+
 	Container = {
 		AddChildren = function(widget, ...)
 			for _, child in pairs({ ... }) do

@@ -3,7 +3,7 @@ local BankOfficer = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local AceGUI = LibStub("AceGUI-3.0")
 
---[[ Local Functions ]]
+--[[ Local List Functions ]]
 local guilds, sort = {}, {}
 local function GetGuildsList()
 	wipe(guilds)
@@ -33,27 +33,46 @@ local function GetTabs(guildKey)
 	return tabs
 end
 
-local function tabs_OnGroupSelected(self, _, tab)
-	print("load tab " .. tab)
-end
-
-local slots = {}
+--[[ Local Functions ]]
+-- Draw tabs and slots
 local function selectGuild_OnValueChanged(self, _, guildKey)
+	private.status.guildKey = guildKey
+
 	local parent = self.parent
 	local tabs = parent.children[2]
 
 	tabs:SetTabs(GetTabs(guildKey))
 
-	for i = 1, 98 do
-		local icon = AceGUI:Create("Icon")
-		icon:SetImage([[INTERFACE/ADDONS/BANKOFFICER/MEDIA/UI-SLOT-BACKGROUND]])
-		icon:SetCallback("OnClick", function()
-			print(i)
+	for slotID = 1, 98 do
+		local slot = AceGUI:Create("Icon")
+		slot:SetUserData("slotID", slotID)
+		slot.frame:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+		slot.frame:RegisterForDrag("LeftButton")
+		slot:SetCallback("OnClick", private.OrganizeSlot_OnClick)
+		slot:SetCallback("OnRelease", function()
+			slot.frame:RegisterForClicks("LeftButtonUp")
+			slot.frame:RegisterForDrag()
+			slot.frame:HookScript("OnDragStart")
+			slot.frame:HookScript("OnDragStop")
+			slot.frame:HookScript("OnReceiveDrag")
 		end)
-		tinsert(slots, icon)
+		slot.frame:HookScript("OnDragStart", private.OrganizeSlot_OnDragStart)
+		slot.frame:HookScript("OnDragStop", private.OrganizeSlot_OnDragStop)
+		slot.frame:HookScript("OnReceiveDrag", private.OrganizeSlot_OnReceiveDrag)
+
+		tabs:AddChild(slot)
 	end
 
-	tabs:AddChildren(unpack(slots))
+	tabs:SelectTab(1)
+end
+
+-- Load tab info onto slots
+local function tabs_OnGroupSelected(self, _, tab)
+	private.status.tab = tab
+
+	for slotID = 1, 98 do
+		private:LoadOrganizeSlotItem(self.children[slotID])
+	end
 end
 
 --[[ Private ]]
