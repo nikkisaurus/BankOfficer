@@ -24,7 +24,7 @@ local methods = {
 			if not func then
 				return
 			end
-			func(widget)
+			func(private, widget)
 		end,
 	},
 }
@@ -38,7 +38,7 @@ function private:EmbedMethods(widget, widgetTypes, release)
 
 	-- Unembed methods on release
 	widget:SetCallback("OnRelease", function()
-		private:EmbedMethods(widget, widgetTypes, true)
+		self:EmbedMethods(widget, widgetTypes, true)
 	end)
 end
 
@@ -46,7 +46,7 @@ end
 function private:AddSpecialFrame(frame, frameName)
 	_G[frameName] = frame
 	tinsert(UISpecialFrames, frameName)
-	private[frameName] = frame
+	self[frameName] = frame
 end
 
 --[[ Get content container ]]
@@ -58,7 +58,7 @@ function private:GetContentContainer(parent)
 	parent:AddChild(scrollContainer)
 
 	local scrollFrame = AceGUI:Create("ScrollFrame")
-	private:EmbedMethods(scrollFrame, { "Container", "ScrollFrame" })
+	self:EmbedMethods(scrollFrame, { "Container", "ScrollFrame" })
 	scrollFrame:SetLayout("Flow")
 	scrollContainer:AddChild(scrollFrame)
 	parent:SetUserData("content", scrollFrame)

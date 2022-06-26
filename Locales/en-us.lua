@@ -10,3 +10,4 @@ L["Restock"] = true
 L["Organize"] = true
 L["Review"] = true
 L["Settings"] = true
+L["Tab"] = true
