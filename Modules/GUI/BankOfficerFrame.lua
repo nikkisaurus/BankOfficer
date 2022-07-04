@@ -51,6 +51,13 @@ function private:InitializeFrame()
 
 	frame:AddChildren(menu)
 
+	private.organizeContextMenu = CreateFrame(
+		"Frame",
+		"BankOfficer_OrganizeContextMenu",
+		UIParent,
+		"UIDropDownMenuTemplate"
+	)
+
 	-- Debug
 	menu:SelectByPath("Organize")
 end

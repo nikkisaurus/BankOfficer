@@ -34,12 +34,23 @@ local function GetTabs(guildKey)
 end
 
 --[[ Local Functions ]]
+-- Duplicate Mode
+local function duplicateMode_OnClick(self)
+	if private.status.duplicateMode then
+		private.status.duplicateMode = nil
+		self.image:SetVertexColor(1, 1, 1)
+	else
+		private.status.duplicateMode = true
+		self.image:SetVertexColor(0, 1, 0)
+	end
+end
+
 -- Draw tabs and slots
 local function selectGuild_OnValueChanged(self, _, guildKey)
 	private.status.guildKey = guildKey
 
 	local parent = self.parent
-	local tabs = parent.children[2]
+	local tabs = parent.children[3]
 
 	tabs:SetTabs(GetTabs(guildKey))
 
@@ -50,11 +61,11 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 		slot.frame:RegisterForDrag("LeftButton")
 		slot:SetCallback("OnClick", private.OrganizeSlot_OnClick)
 		slot:SetCallback("OnRelease", function()
-			slot.frame:RegisterForClicks("LeftButtonUp")
-			slot.frame:RegisterForDrag()
 			slot.frame:HookScript("OnDragStart")
 			slot.frame:HookScript("OnDragStop")
 			slot.frame:HookScript("OnReceiveDrag")
+			slot.frame:RegisterForClicks("LeftButtonUp")
+			slot.frame:RegisterForDrag()
 		end)
 		slot.frame:HookScript("OnDragStart", private.OrganizeSlot_OnDragStart)
 		slot.frame:HookScript("OnDragStop", private.OrganizeSlot_OnDragStop)
@@ -82,6 +93,21 @@ function private:DrawOrganizeContent(parent)
 	selectGuild:SetList(GetGuildsList())
 	selectGuild:SetCallback("OnValueChanged", selectGuild_OnValueChanged)
 
+	local controls = AceGUI:Create("InlineGroup")
+	private:EmbedMethods(controls, { "Container" })
+	controls:SetLayout("Flow")
+	controls:SetFullWidth(true)
+
+	local duplicateMode = AceGUI:Create("Icon")
+	private:EmbedMethods(duplicateMode, {})
+	duplicateMode:SetImage(self.media .. [[clone-solid]])
+	duplicateMode:SetImageSize(14, 14)
+	duplicateMode:SetSize(14, 18)
+	duplicateMode:SetTooltip("ANCHOR_TOPRIGHT ", 0, 0, { { L["Duplicate Mode"] } })
+	duplicateMode:SetCallback("OnClick", duplicateMode_OnClick)
+
+	controls:AddChildren(duplicateMode)
+
 	local tabs = AceGUI:Create("TabGroup")
 	private:EmbedMethods(tabs, { "Container" })
 	tabs:SetLayout("BankOfficer_GuildBankTab")
@@ -89,5 +115,5 @@ function private:DrawOrganizeContent(parent)
 	tabs:SetFullWidth(true)
 	tabs:SetCallback("OnGroupSelected", tabs_OnGroupSelected)
 
-	parent:AddChildren(selectGuild, tabs)
+	parent:AddChildren(selectGuild, controls, tabs)
 end

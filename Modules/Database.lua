@@ -29,7 +29,15 @@ local tabs = {}
 function private:InitializeGuild()
 	local guild = (GetGuildInfo("player"))
 	local realm = GetRealmName()
-	self.guildKey = realm and format("%s - %s", guild, realm)
+
+	if not guild or not realm then
+		C_Timer.After(0.1, function()
+			private:InitializeGuild()
+		end)
+		return
+	end
+
+	private.guildKey = realm and format("%s - %s", guild, realm)
 
 	wipe(tabs)
 
@@ -43,5 +51,5 @@ function private:InitializeGuild()
 		end)
 	end
 
-	self.db.global.guilds[self.guildKey] = tabs
+	private.db.global.guilds[private.guildKey] = tabs
 end

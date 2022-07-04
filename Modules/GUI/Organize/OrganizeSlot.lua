@@ -2,12 +2,58 @@ local addonName, private = ...
 local BankOfficer = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
+--[[ Menus ]]
+local function GetEasyMenu(slot, itemInfo, isEmpty)
+	local menu
+	if isEmpty then
+		menu = {}
+	else
+		BankOfficer.CacheItem(itemInfo.itemID, function(private, slot, itemInfo)
+			local itemName = GetItemInfo(itemInfo.itemID)
+
+			menu = {
+
+				{ text = itemName, isTitle = true, notCheckable = true },
+				{
+					text = L["Edit Slot"],
+					func = function()
+						print("Edit slot")
+					end,
+				},
+				{
+					text = L["Clear Slot"],
+					func = function()
+						private:ClearOrganizeSlot(slot)
+					end,
+				},
+				--{
+				--	text = "More Options",
+				--	hasArrow = true,
+				--	menuList = {
+				--		{
+				--			text = "Option 3",
+				--			func = function()
+				--				print("You've chosen option 3")
+				--			end,
+				--		},
+				--	},
+				--},
+			}
+		end, private, slot, itemInfo)
+	end
+
+	return menu
+end
+
 --[[ Script handlers ]]
 function private.OrganizeSlot_OnClick(slot, _, mouseButton, ...)
+	local itemInfo = private.db.global.organize[private.status.guildKey][private.status.tab][slot:GetUserData("slotID")]
+	local isEmpty = not itemInfo or not itemInfo.itemID
+
 	if mouseButton == "LeftButton" then
 		private.OrganizeSlot_OnReceiveDrag(slot.frame, "OnReceiveDrag", mouseButton, ...)
 	elseif mouseButton == "RightButton" then
-		print("open context menu")
+		EasyMenu(GetEasyMenu(slot, itemInfo, isEmpty), private.organizeContextMenu, slot.frame, 0, 0, "MENU")
 	end
 end
 
@@ -19,14 +65,7 @@ function private.OrganizeSlot_OnDragStart(slot)
 		return
 	end
 
-	PickupItem(itemInfo.itemID)
-	slot.image:SetDesaturated(true)
-
-	if IsControlKeyDown() and not IsAltKeyDown() and not IsShiftKeyDown() then
-		return
-	end
-
-	private.status.clearSlot = slot
+	private:PickupOrganizeSlotItem(slot, itemInfo.itemID)
 end
 
 function private.OrganizeSlot_OnReceiveDrag(slot)
@@ -56,6 +95,9 @@ end
 
 function private.OrganizeSlot_OnDragStop(slot)
 	slot = slot.obj
+	if not slot then
+		return
+	end
 	slot.image:SetDesaturated(false)
 end
 
@@ -72,7 +114,22 @@ end
 function private:LoadOrganizeSlotItem(slot)
 	local itemInfo = private.db.global.organize[private.status.guildKey][private.status.tab][slot:GetUserData("slotID")]
 	local isEmpty = not itemInfo or not itemInfo.itemID
-	slot:SetImage(isEmpty and [[INTERFACE/ADDONS/BANKOFFICER/MEDIA/UI-SLOT-BACKGROUND]] or GetItemIcon(itemInfo.itemID))
+	slot:SetImage(isEmpty and self.media .. [[UI-SLOT-BACKGROUND]] or GetItemIcon(itemInfo.itemID))
+end
+
+function private:PickupOrganizeSlotItem(slot, itemID)
+	if not itemID then
+		return
+	end
+
+	PickupItem(itemID)
+	slot.image:SetDesaturated(true)
+
+	if IsControlKeyDown() and not IsAltKeyDown() and not IsShiftKeyDown() then
+		return
+	end
+
+	private.status.clearSlot = slot
 end
 
 function private:SaveOrganizeSlotItem(slot, itemID)
