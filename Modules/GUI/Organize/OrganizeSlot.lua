@@ -6,7 +6,14 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local function GetEasyMenu(slot, itemInfo, isEmpty)
 	local menu
 	if isEmpty then
-		menu = {}
+		menu = {
+			{
+				text = L["Edit Slot"],
+				func = function()
+					print("Edit slot")
+				end,
+			},
+		}
 	else
 		BankOfficer.CacheItem(itemInfo.itemID, function(private, slot, itemInfo)
 			local itemName = GetItemInfo(itemInfo.itemID)
@@ -21,23 +28,17 @@ local function GetEasyMenu(slot, itemInfo, isEmpty)
 					end,
 				},
 				{
+					text = L["Duplicate Slot"],
+					func = function()
+						private:PickupOrganizeSlotItem(slot, itemInfo.itemID, true)
+					end,
+				},
+				{
 					text = L["Clear Slot"],
 					func = function()
 						private:ClearOrganizeSlot(slot)
 					end,
 				},
-				--{
-				--	text = "More Options",
-				--	hasArrow = true,
-				--	menuList = {
-				--		{
-				--			text = "Option 3",
-				--			func = function()
-				--				print("You've chosen option 3")
-				--			end,
-				--		},
-				--	},
-				--},
 			}
 		end, private, slot, itemInfo)
 	end
@@ -51,7 +52,14 @@ function private.OrganizeSlot_OnClick(slot, _, mouseButton, ...)
 	local isEmpty = not itemInfo or not itemInfo.itemID
 
 	if mouseButton == "LeftButton" then
-		private.OrganizeSlot_OnReceiveDrag(slot.frame, "OnReceiveDrag", mouseButton, ...)
+		local cursorType, itemID = GetCursorInfo()
+		if private.status.editMode == "clear" then
+			private:ClearOrganizeSlot(slot)
+		elseif cursorType == "item" then
+			private.OrganizeSlot_OnReceiveDrag(slot.frame, "OnReceiveDrag", mouseButton, ...)
+		elseif not isEmpty then
+			private:PickupOrganizeSlotItem(slot, itemInfo.itemID)
+		end
 	elseif mouseButton == "RightButton" then
 		EasyMenu(GetEasyMenu(slot, itemInfo, isEmpty), private.organizeContextMenu, slot.frame, 0, 0, "MENU")
 	end
@@ -74,7 +82,9 @@ function private.OrganizeSlot_OnReceiveDrag(slot)
 	local isEmpty = not itemInfo or not itemInfo.itemID
 
 	local cursorType, itemID = GetCursorInfo()
-	ClearCursor()
+	if private.status.editMode ~= "duplicate" then
+		ClearCursor()
+	end
 
 	if cursorType == "item" then
 		local _, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(itemID)
@@ -106,6 +116,7 @@ function private:ClearOrganizeSlot(slot)
 	if not slot then
 		return
 	end
+	private.OrganizeSlot_OnDragStop(slot)
 	private.status.clearSlot = nil
 	private.db.global.organize[private.status.guildKey][private.status.tab][slot:GetUserData("slotID")] = nil
 	private:LoadOrganizeSlotItem(slot)
@@ -117,19 +128,16 @@ function private:LoadOrganizeSlotItem(slot)
 	slot:SetImage(isEmpty and self.media .. [[UI-SLOT-BACKGROUND]] or GetItemIcon(itemInfo.itemID))
 end
 
-function private:PickupOrganizeSlotItem(slot, itemID)
+function private:PickupOrganizeSlotItem(slot, itemID, duplicate)
 	if not itemID then
 		return
 	end
 
 	PickupItem(itemID)
-	slot.image:SetDesaturated(true)
 
-	if IsControlKeyDown() and not IsAltKeyDown() and not IsShiftKeyDown() then
-		return
-	end
-
-	private.status.clearSlot = slot
+	local isDuplicate = private.status.editMode == "duplicate" or duplicate
+	slot.image:SetDesaturated(not isDuplicate)
+	private.status.clearSlot = not isDuplicate and slot
 end
 
 function private:SaveOrganizeSlotItem(slot, itemID)
@@ -141,4 +149,5 @@ function private:SaveOrganizeSlotItem(slot, itemID)
 	}
 
 	private:LoadOrganizeSlotItem(slot)
+	slot.image:SetDesaturated(false)
 end

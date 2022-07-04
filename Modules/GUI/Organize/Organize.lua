@@ -34,14 +34,51 @@ local function GetTabs(guildKey)
 end
 
 --[[ Local Functions ]]
--- Duplicate Mode
+-- EditMode
+local function SetEditMode(controls, mode)
+	private.status.editMode = mode
+	for _, child in pairs(controls.children) do
+		child.image:SetVertexColor(1, 1, 1)
+	end
+end
+
 local function duplicateMode_OnClick(self)
-	if private.status.duplicateMode then
-		private.status.duplicateMode = nil
-		self.image:SetVertexColor(1, 1, 1)
+	if not self:GetUserData("enabled") then
+		return
+	end
+
+	if private.status.editMode == "duplicate" then
+		SetEditMode(self.parent)
+		ClearCursor()
 	else
-		private.status.duplicateMode = true
-		self.image:SetVertexColor(0, 1, 0)
+		SetEditMode(self.parent, "duplicate")
+		self.image:SetVertexColor(1, 0.82, 0)
+	end
+end
+
+local function clearMode_OnClick(self)
+	if not self:GetUserData("enabled") then
+		return
+	end
+
+	if private.status.editMode == "clear" then
+		SetEditMode(self.parent)
+	else
+		SetEditMode(self.parent, "clear")
+		self.image:SetVertexColor(1, 0.82, 0)
+	end
+end
+
+local function templateMode_OnClick(self)
+	if not self:GetUserData("enabled") then
+		return
+	end
+
+	if private.status.editMode == "template" then
+		SetEditMode(self.parent)
+	else
+		SetEditMode(self.parent, "template")
+		self.image:SetVertexColor(1, 0.82, 0)
 	end
 end
 
@@ -75,6 +112,10 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 	end
 
 	tabs:SelectTab(1)
+
+	for _, child in pairs(parent.children[2].children) do
+		child:SetUserData("enabled", true)
+	end
 end
 
 -- Load tab info onto slots
@@ -102,11 +143,27 @@ function private:DrawOrganizeContent(parent)
 	private:EmbedMethods(duplicateMode, {})
 	duplicateMode:SetImage(self.media .. [[clone-solid]])
 	duplicateMode:SetImageSize(14, 14)
-	duplicateMode:SetSize(14, 18)
+	duplicateMode:SetLabel(L["Duplicate Mode"])
 	duplicateMode:SetTooltip("ANCHOR_TOPRIGHT ", 0, 0, { { L["Duplicate Mode"] } })
 	duplicateMode:SetCallback("OnClick", duplicateMode_OnClick)
 
-	controls:AddChildren(duplicateMode)
+	local clearMode = AceGUI:Create("Icon")
+	private:EmbedMethods(clearMode, {})
+	clearMode:SetImage(self.media .. [[ban-solid]])
+	clearMode:SetImageSize(14, 14)
+	clearMode:SetLabel(L["Clear Mode"])
+	clearMode:SetTooltip("ANCHOR_TOPRIGHT ", 0, 0, { { L["Clear Mode"] } })
+	clearMode:SetCallback("OnClick", clearMode_OnClick)
+
+	local templateMode = AceGUI:Create("Icon")
+	private:EmbedMethods(templateMode, {})
+	templateMode:SetImage(self.media .. [[link-solid]])
+	templateMode:SetImageSize(14, 14)
+	templateMode:SetLabel(L["Template Mode"])
+	templateMode:SetTooltip("ANCHOR_TOPRIGHT ", 0, 0, { { L["Template Mode"] } })
+	templateMode:SetCallback("OnClick", templateMode_OnClick)
+
+	controls:AddChildren(duplicateMode, clearMode, templateMode)
 
 	local tabs = AceGUI:Create("TabGroup")
 	private:EmbedMethods(tabs, { "Container" })
