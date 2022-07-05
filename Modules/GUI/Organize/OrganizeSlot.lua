@@ -3,11 +3,14 @@ local BankOfficer = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local AceGUI = LibStub("AceGUI-3.0")
 
---[[ Menus ]]
-local function GetEasyMenu(slot, itemInfo, isEmpty)
-	local menu
+--[[ Locals ]]
+-- Menus
+local function GetEasyMenu(slot)
+	local itemInfo = private.db.global.organize[private.status.guildKey][private.status.tab][slot:GetUserData("slotID")]
+	local isEmpty = not itemInfo or not itemInfo.itemID
+
 	if isEmpty then
-		menu = {
+		return {
 			{
 				text = L["Edit Slot"],
 				func = function()
@@ -16,35 +19,34 @@ local function GetEasyMenu(slot, itemInfo, isEmpty)
 			},
 		}
 	else
-		BankOfficer.CacheItem(itemInfo.itemID, function(private, slot, itemInfo)
-			local itemName = GetItemInfo(itemInfo.itemID)
+		local menu = {
+			{ text = "", isTitle = true, notCheckable = true },
+			{
+				text = L["Edit Slot"],
+				func = function()
+					private:EditOrganizeSlot(slot, itemInfo)
+				end,
+			},
+			{
+				text = L["Duplicate Slot"],
+				func = function()
+					private:PickupOrganizeSlotItem(slot, itemInfo.itemID, true)
+				end,
+			},
+			{
+				text = L["Clear Slot"],
+				func = function()
+					private:ClearOrganizeSlot(slot)
+				end,
+			},
+		}
 
-			menu = {
+		BankOfficer.CacheItem(itemInfo.itemID, function(menu, itemID)
+			menu[1].text = (GetItemInfo(itemID))
+		end, menu, itemInfo.itemID)
 
-				{ text = itemName, isTitle = true, notCheckable = true },
-				{
-					text = L["Edit Slot"],
-					func = function()
-						private:EditOrganizeSlot(slot, itemInfo)
-					end,
-				},
-				{
-					text = L["Duplicate Slot"],
-					func = function()
-						private:PickupOrganizeSlotItem(slot, itemInfo.itemID, true)
-					end,
-				},
-				{
-					text = L["Clear Slot"],
-					func = function()
-						private:ClearOrganizeSlot(slot)
-					end,
-				},
-			}
-		end, private, slot, itemInfo)
+		return menu
 	end
-
-	return menu
 end
 
 --[[ Script handlers ]]
@@ -62,7 +64,7 @@ function private.OrganizeSlot_OnClick(slot, _, mouseButton, ...)
 			private:PickupOrganizeSlotItem(slot, itemInfo.itemID)
 		end
 	elseif mouseButton == "RightButton" then
-		EasyMenu(GetEasyMenu(slot, itemInfo, isEmpty), private.organizeContextMenu, slot.frame, 0, 0, "MENU")
+		EasyMenu(GetEasyMenu(slot), private.organizeContextMenu, slot.frame, 0, 0, "MENU")
 	end
 end
 
@@ -124,44 +126,8 @@ function private:ClearOrganizeSlot(slot)
 end
 
 function private:EditOrganizeSlot(slot, itemInfo, isEmpty)
-	local parent = slot.parent.parent
-
 	if isEmpty then
 	else
-		private:CacheItem(itemInfo.itemID, function()
-			print(GetItemInfo(itemInfo.itemID))
-		end)
-		--BankOfficer.CacheItem(itemInfo.itemID, function(private, editSlotGroup, slot, itemInfo)
-		--	local itemName = GetItemInfo(itemInfo.itemID)
-
-		--	local name = AceGUI:Create("Label")
-		--	name:SetFullWidth(true)
-		--	name:SetText(itemName)
-		--	name:SetImage(GetItemIcon(itemInfo.itemID))
-		--	name:SetImageSize(24, 24)
-		--	name:SetFontObject(GameFontNormal)
-
-		--	local itemID = AceGUI:Create("EditBox")
-		--	itemID:SetText(tostring(itemInfo.itemID))
-		--	itemID:SetLabel(L["Item ID"])
-		--	itemID:SetCallback("OnEnterPressed", function(self, _, value)
-		--		local newItemID = tonumber(value)
-		--		if not newItemID or newItemID == 0 then
-		--			return
-		--		end
-
-		--		local _, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(newItemID)
-		--		if bindType ~= 1 then
-		--			private:SaveOrganizeSlotItem(slot, newItemID)
-		--			editSlotGroup:ReleaseChildren()
-		--			itemInfo.itemID = newItemID
-		--			private:EditOrganizeSlot(slot, itemInfo)
-		--			editSlotGroup.parent:DoLayout()
-		--		end
-		--	end)
-
-		--	editSlotGroup:AddChildren(name, itemID)
-		--end, private, editSlotGroup, slot, itemInfo)
 	end
 end
 

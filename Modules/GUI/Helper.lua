@@ -87,13 +87,6 @@ function private:EmbedMethods(widget, widgetTypes, release)
 	end
 end
 
---[[ Add frame to UISpecialFrames ]]
-function private:AddSpecialFrame(frame, frameName)
-	_G[frameName] = frame
-	tinsert(UISpecialFrames, frameName)
-	self[frameName] = frame
-end
-
 --[[ Get content container ]]
 function private:GetContentContainer(parent)
 	parent:SetLayout("Fill")
@@ -111,12 +104,9 @@ function private:GetContentContainer(parent)
 	return scrollFrame
 end
 
---[[ Cache Item ]]
-function private:CacheItem(itemID, callback, args)
-	C_Timer.NewTicker(0.1, function(self)
-		if GetItemInfo(itemID) then
-			self:Cancel()
-			callback(BankOfficer.unpack(args, {}))
-		end
-	end)
+--[[ Add frame to UISpecialFrames ]]
+function private:AddSpecialFrame(frame, frameName)
+	_G[frameName] = frame
+	tinsert(UISpecialFrames, frameName)
+	self[frameName] = frame
 end

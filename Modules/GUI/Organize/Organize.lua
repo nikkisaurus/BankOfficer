@@ -3,7 +3,8 @@ local BankOfficer = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local AceGUI = LibStub("AceGUI-3.0")
 
---[[ Local List Functions ]]
+--[[ Locals ]]
+-- Lists
 local guilds, sort = {}, {}
 local function GetGuildsList()
 	wipe(guilds)
@@ -33,8 +34,7 @@ local function GetTabs(guildKey)
 	return tabs
 end
 
---[[ Local Functions ]]
--- EditMode
+--[[ Script handlers ]]
 local function duplicateMode_OnClick(self)
 	self.parent:NotifyChange()
 	if private.status.editMode == "duplicate" then
@@ -57,7 +57,6 @@ local function clearMode_OnClick(self)
 	end
 end
 
--- Draw tabs and slots
 local function selectGuild_OnValueChanged(self, _, guildKey)
 	private.status.guildKey = guildKey
 
@@ -90,7 +89,6 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 	parent.children[2]:NotifyChange() -- Update controls
 end
 
--- Load tab info onto slots
 local function tabs_OnGroupSelected(self, _, tab)
 	private.status.tab = tab
 
@@ -144,12 +142,7 @@ function private:DrawOrganizeContent(parent)
 	clearMode:SetTooltip("ANCHOR_TOPRIGHT ", 0, 0, { { L["Clear Mode"] } })
 	clearMode:SetCallback("OnClick", clearMode_OnClick)
 
-	local editOrganizeSlot = AceGUI:Create("InlineGroup")
-	private:EmbedMethods(editOrganizeSlot, { "Container" })
-	editOrganizeSlot:SetLayout("Flow")
-	editOrganizeSlot:SetFullWidth(true)
-
-	controls:AddChildren(templateMode, duplicateMode, clearMode, editOrganizeSlot)
+	controls:AddChildren(templateMode, duplicateMode, clearMode)
 	controls:NotifyChange() -- Updates disabled status
 
 	-- Tabs

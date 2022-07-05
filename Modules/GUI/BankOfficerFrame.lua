@@ -3,7 +3,8 @@ local BankOfficer = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 local AceGUI = LibStub("AceGUI-3.0")
 
---[[ Local ]]
+--[[ Locals ]]
+-- Trees
 local menuTree = {
 	{
 		value = "Restock",
@@ -23,7 +24,7 @@ local menuTree = {
 	},
 }
 
---[[ Local Functions ]]
+--[[ Script handlers ]]
 local function menu_OnGroupSelected(self, _, group)
 	wipe(private.status)
 	private.status.group = group
