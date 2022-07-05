@@ -10,7 +10,7 @@ function private:InitializeDatabase()
 	self.db = LibStub("AceDB-3.0"):New("BankOfficerDB", {
 		global = {
 			debug = {
-				--enabled = true,
+				enabled = true,
 				frames = {
 					BankOfficerFrame = true,
 				},

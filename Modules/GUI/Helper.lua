@@ -110,3 +110,21 @@ function private:AddSpecialFrame(frame, frameName)
 	tinsert(UISpecialFrames, frameName)
 	self[frameName] = frame
 end
+
+private.CacheItemCo = function(itemID)
+	C_Timer.NewTicker(0.1, function(self)
+		if GetItemInfo(itemID) then
+			self:Cancel()
+			return
+		end
+	end)
+	coroutine.yield(itemID)
+end
+
+function private:CacheItem(itemID)
+	local co = coroutine.create(private.CacheItemCo)
+	local _, cachedItemID = coroutine.resume(co, itemID)
+	while not cachedItemID do
+		_, cachedItemID = coroutine.resume(co, itemID)
+	end
+end

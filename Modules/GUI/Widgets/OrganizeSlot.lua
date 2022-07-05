@@ -12,34 +12,34 @@ local SLOTBUTTON_TEXTURE = [[INTERFACE\ADDONS\BANKOFFICER\MEDIA\UI-SLOT-BACKGROU
 --[[ Locals ]]
 -- Menus
 local function GetEasyMenu(widget)
-	local itemInfo =
+	local slotInfo =
 		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
 			"slotID"
 		)]
-	local isEmpty = not itemInfo or not itemInfo.itemID
+	local isEmpty = not slotInfo or not slotInfo.itemID
 
 	if isEmpty then
 		return {
 			{
 				text = L["Edit Slot"],
 				func = function()
-					private:EditOrganizeSlot(widget, itemInfo, isEmpty)
+					widget:EditSlot()
 				end,
 			},
 		}
 	else
-		local menu = {
-			{ text = "", isTitle = true, notCheckable = true },
+		return {
+			{ text = (GetItemInfo(slotInfo.itemID)), isTitle = true, notCheckable = true },
 			{
 				text = L["Edit Slot"],
 				func = function()
-					private:EditOrganizeSlot(widget, itemInfo)
+					widget:EditSlot()
 				end,
 			},
 			{
 				text = L["Duplicate Slot"],
 				func = function()
-					private:PickupOrganizeSlotItem(widget, itemInfo.itemID, true)
+					widget:PickupItem()
 				end,
 			},
 			{
@@ -49,12 +49,6 @@ local function GetEasyMenu(widget)
 				end,
 			},
 		}
-
-		BankOfficer.CacheItem(itemInfo.itemID, function(menu, itemID)
-			menu[1].text = (GetItemInfo(itemID))
-		end, menu, itemInfo.itemID)
-
-		return menu
 	end
 end
 
@@ -85,6 +79,9 @@ local function frame_onClick(frame, mouseButton)
 			widget:PickupItem()
 		end
 	elseif mouseButton == "RightButton" then
+		if not isEmpty then
+			private:CacheItem(slotInfo.itemID)
+		end
 		EasyMenu(GetEasyMenu(widget), private.organizeContextMenu, widget.frame, 0, 0, "MENU")
 	end
 end
@@ -121,6 +118,10 @@ local methods = {
 		widget:LoadSlot()
 	end,
 
+	EditSlot = function(widget)
+		print("Edit slot")
+	end,
+
 	LoadCursorItem = function(widget, itemID)
 		local cursorInfo = private.status.organize.cursorInfo
 
@@ -128,13 +129,12 @@ local methods = {
 			widget:UpdateSlotInfo(cursorInfo)
 			private.status.organize.cursorInfo = nil
 		else
-			BankOfficer.CacheItem(itemID, function(private, widget, itemID)
-				local _, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(itemID)
+			private:CacheItem(itemID)
+			local _, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(itemID)
 
-				if bindType ~= 1 then
-					widget:UpdateSlotInfo({ itemID = itemID, stack = private.stack })
-				end
-			end, private, widget, itemID)
+			if bindType and bindType ~= 1 then
+				widget:UpdateSlotInfo({ itemID = itemID, stack = private.stack })
+			end
 		end
 
 		if private.status.organize.editMode ~= "duplicate" then
