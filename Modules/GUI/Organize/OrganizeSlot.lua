@@ -6,7 +6,10 @@ local AceGUI = LibStub("AceGUI-3.0")
 --[[ Locals ]]
 -- Menus
 local function GetEasyMenu(slot)
-	local itemInfo = private.db.global.organize[private.status.guildKey][private.status.tab][slot:GetUserData("slotID")]
+	local itemInfo =
+		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slot:GetUserData(
+			"slotID"
+		)]
 	local isEmpty = not itemInfo or not itemInfo.itemID
 
 	if isEmpty then
@@ -51,12 +54,15 @@ end
 
 --[[ Script handlers ]]
 function private.OrganizeSlot_OnClick(slot, _, mouseButton, ...)
-	local itemInfo = private.db.global.organize[private.status.guildKey][private.status.tab][slot:GetUserData("slotID")]
+	local itemInfo =
+		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slot:GetUserData(
+			"slotID"
+		)]
 	local isEmpty = not itemInfo or not itemInfo.itemID
 
 	if mouseButton == "LeftButton" then
 		local cursorType, itemID = GetCursorInfo()
-		if private.status.editMode == "clear" then
+		if private.status.organize.editMode == "clear" then
 			private:ClearOrganizeSlot(slot)
 		elseif cursorType == "item" then
 			private.OrganizeSlot_OnReceiveDrag(slot.frame, "OnReceiveDrag", mouseButton, ...)
@@ -70,7 +76,10 @@ end
 
 function private.OrganizeSlot_OnDragStart(slot)
 	slot = slot.obj
-	local itemInfo = private.db.global.organize[private.status.guildKey][private.status.tab][slot:GetUserData("slotID")]
+	local itemInfo =
+		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slot:GetUserData(
+			"slotID"
+		)]
 	local isEmpty = not itemInfo or not itemInfo.itemID
 	if isEmpty then
 		return
@@ -81,11 +90,14 @@ end
 
 function private.OrganizeSlot_OnReceiveDrag(slot)
 	slot = slot.obj
-	local itemInfo = private.db.global.organize[private.status.guildKey][private.status.tab][slot:GetUserData("slotID")]
+	local itemInfo =
+		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slot:GetUserData(
+			"slotID"
+		)]
 	local isEmpty = not itemInfo or not itemInfo.itemID
 
 	local cursorType, itemID = GetCursorInfo()
-	if private.status.editMode ~= "duplicate" then
+	if private.status.organize.editMode ~= "duplicate" then
 		ClearCursor()
 	end
 
@@ -93,12 +105,12 @@ function private.OrganizeSlot_OnReceiveDrag(slot)
 		local _, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(itemID)
 
 		if bindType ~= 1 then
-			if private.status.clearSlot then
+			if private.status.organize.clearSlot then
 				if not isEmpty then
-					private:SaveOrganizeSlotItem(private.status.clearSlot, itemInfo.itemID)
-					private.status.clearSlot = nil
+					private:SaveOrganizeSlotItem(private.status.organize.clearSlot, itemInfo.itemID)
+					private.status.organize.clearSlot = nil
 				else
-					private:ClearOrganizeSlot(private.status.clearSlot)
+					private:ClearOrganizeSlot(private.status.organize.clearSlot)
 				end
 			end
 			private:SaveOrganizeSlotItem(slot, itemID)
@@ -120,8 +132,9 @@ function private:ClearOrganizeSlot(slot)
 		return
 	end
 	private.OrganizeSlot_OnDragStop(slot)
-	private.status.clearSlot = nil
-	private.db.global.organize[private.status.guildKey][private.status.tab][slot:GetUserData("slotID")] = nil
+	private.status.organize.clearSlot = nil
+	private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slot:GetUserData("slotID")] =
+		nil
 	private:LoadOrganizeSlotItem(slot)
 end
 
@@ -132,7 +145,14 @@ function private:EditOrganizeSlot(slot, itemInfo, isEmpty)
 end
 
 function private:LoadOrganizeSlotItem(slot)
-	local itemInfo = private.db.global.organize[private.status.guildKey][private.status.tab][slot:GetUserData("slotID")]
+	if not private.status.organize.guildKey or not private.status.organize.tab then
+		return
+	end
+
+	local itemInfo =
+		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slot:GetUserData(
+			"slotID"
+		)]
 	local isEmpty = not itemInfo or not itemInfo.itemID
 	slot:SetImage(isEmpty and self.media .. [[UI-SLOT-BACKGROUND]] or GetItemIcon(itemInfo.itemID))
 end
@@ -144,13 +164,13 @@ function private:PickupOrganizeSlotItem(slot, itemID, duplicate)
 
 	PickupItem(itemID)
 
-	local isDuplicate = private.status.editMode == "duplicate" or duplicate
+	local isDuplicate = private.status.organize.editMode == "duplicate" or duplicate
 	slot.image:SetDesaturated(not isDuplicate)
-	private.status.clearSlot = not isDuplicate and slot
+	private.status.organize.clearSlot = not isDuplicate and slot
 end
 
 function private:SaveOrganizeSlotItem(slot, itemID)
-	local db = private.db.global.organize[private.status.guildKey][private.status.tab]
+	local db = private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab]
 	local slotID = slot:GetUserData("slotID")
 
 	db[slotID] = {

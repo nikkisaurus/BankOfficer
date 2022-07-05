@@ -23,6 +23,9 @@ local function GetTabs(guildKey)
 	wipe(tabs)
 
 	local guildDB = private.db.global.guilds[guildKey]
+	if not guildDB then
+		return tabs
+	end
 
 	for tab, tabInfo in pairs(guildDB) do
 		tinsert(tabs, {
@@ -37,28 +40,28 @@ end
 --[[ Script handlers ]]
 local function duplicateMode_OnClick(self)
 	self.parent:NotifyChange()
-	if private.status.editMode == "duplicate" then
-		private.status.editMode = nil
+	if private.status.organize.editMode == "duplicate" then
+		private.status.organize.editMode = nil
 		ClearCursor()
 	else
-		private.status.editMode = "duplicate"
+		private.status.organize.editMode = "duplicate"
 		self.image:SetVertexColor(1, 0.82, 0)
 	end
 end
 
 local function clearMode_OnClick(self)
 	self.parent:NotifyChange()
-	if private.status.editMode == "clear" then
-		private.status.editMode = nil
+	if private.status.organize.editMode == "clear" then
+		private.status.organize.editMode = nil
 		ClearCursor()
 	else
-		private.status.editMode = "clear"
+		private.status.organize.editMode = "clear"
 		self.image:SetVertexColor(1, 0.82, 0)
 	end
 end
 
 local function selectGuild_OnValueChanged(self, _, guildKey)
-	private.status.guildKey = guildKey
+	private.status.organize.guildKey = guildKey
 
 	local parent = self.parent
 	local tabs = parent.children[#parent.children]
@@ -85,12 +88,15 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 		tabs:AddChild(slot)
 	end
 
-	tabs:SelectTab(1)
+	if not private.status.organize.tab then
+		tabs:SelectTab(1)
+	end
+
 	parent.children[2]:NotifyChange() -- Update controls
 end
 
 local function tabs_OnGroupSelected(self, _, tab)
-	private.status.tab = tab
+	private.status.organize.tab = tab
 
 	for slotID = 1, 98 do
 		private:LoadOrganizeSlotItem(self.children[slotID])
@@ -114,7 +120,7 @@ function private:DrawOrganizeContent(parent)
 		local children = controls.children
 		for _, child in pairs(children) do
 			if child.SetDisabled then
-				child:SetDisabled(not private.status.guildKey)
+				child:SetDisabled(not private.status.organize.guildKey)
 			end
 			if child.image then
 				child.image:SetVertexColor(1, 1, 1)
@@ -154,4 +160,12 @@ function private:DrawOrganizeContent(parent)
 	tabs:SetCallback("OnGroupSelected", tabs_OnGroupSelected)
 
 	parent:AddChildren(selectGuild, controls, tabs)
+
+	-- Restore guild
+	selectGuild:SetValue(private.status.organize.guildKey)
+	selectGuild_OnValueChanged(selectGuild, _, private.status.organize.guildKey)
+
+	-- Restore tab
+	tabs:SelectTab(private.status.organize.tab)
+	tabs_OnGroupSelected(tabs, _, private.status.organize.tab)
 end

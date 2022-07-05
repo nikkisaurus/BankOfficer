@@ -26,7 +26,6 @@ local menuTree = {
 
 --[[ Script handlers ]]
 local function menu_OnGroupSelected(self, _, group)
-	wipe(private.status)
 	private.status.group = group
 
 	local content = self:GetUserData("content")
