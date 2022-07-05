@@ -23,3 +23,9 @@ function private:StartDebug()
 		end
 	end
 end
+
+--[[ Coroutine ]]
+function private:CreateCoroutine(func)
+	private.co = coroutine.create(func)
+	return private.co
+end

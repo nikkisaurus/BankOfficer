@@ -1,6 +1,7 @@
 local addonName, private = ...
 local BankOfficer = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
+local AceGUI = LibStub("AceGUI-3.0")
 
 --[[ Menus ]]
 local function GetEasyMenu(slot, itemInfo, isEmpty)
@@ -10,7 +11,7 @@ local function GetEasyMenu(slot, itemInfo, isEmpty)
 			{
 				text = L["Edit Slot"],
 				func = function()
-					print("Edit slot")
+					private:EditOrganizeSlot(slot, itemInfo, isEmpty)
 				end,
 			},
 		}
@@ -24,7 +25,7 @@ local function GetEasyMenu(slot, itemInfo, isEmpty)
 				{
 					text = L["Edit Slot"],
 					func = function()
-						print("Edit slot")
+						private:EditOrganizeSlot(slot, itemInfo)
 					end,
 				},
 				{
@@ -120,6 +121,48 @@ function private:ClearOrganizeSlot(slot)
 	private.status.clearSlot = nil
 	private.db.global.organize[private.status.guildKey][private.status.tab][slot:GetUserData("slotID")] = nil
 	private:LoadOrganizeSlotItem(slot)
+end
+
+function private:EditOrganizeSlot(slot, itemInfo, isEmpty)
+	local parent = slot.parent.parent
+
+	if isEmpty then
+	else
+		private:CacheItem(itemInfo.itemID, function()
+			print(GetItemInfo(itemInfo.itemID))
+		end)
+		--BankOfficer.CacheItem(itemInfo.itemID, function(private, editSlotGroup, slot, itemInfo)
+		--	local itemName = GetItemInfo(itemInfo.itemID)
+
+		--	local name = AceGUI:Create("Label")
+		--	name:SetFullWidth(true)
+		--	name:SetText(itemName)
+		--	name:SetImage(GetItemIcon(itemInfo.itemID))
+		--	name:SetImageSize(24, 24)
+		--	name:SetFontObject(GameFontNormal)
+
+		--	local itemID = AceGUI:Create("EditBox")
+		--	itemID:SetText(tostring(itemInfo.itemID))
+		--	itemID:SetLabel(L["Item ID"])
+		--	itemID:SetCallback("OnEnterPressed", function(self, _, value)
+		--		local newItemID = tonumber(value)
+		--		if not newItemID or newItemID == 0 then
+		--			return
+		--		end
+
+		--		local _, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(newItemID)
+		--		if bindType ~= 1 then
+		--			private:SaveOrganizeSlotItem(slot, newItemID)
+		--			editSlotGroup:ReleaseChildren()
+		--			itemInfo.itemID = newItemID
+		--			private:EditOrganizeSlot(slot, itemInfo)
+		--			editSlotGroup.parent:DoLayout()
+		--		end
+		--	end)
+
+		--	editSlotGroup:AddChildren(name, itemID)
+		--end, private, editSlotGroup, slot, itemInfo)
+	end
 end
 
 function private:LoadOrganizeSlotItem(slot)

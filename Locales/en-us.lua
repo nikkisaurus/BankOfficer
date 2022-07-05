@@ -18,3 +18,4 @@ L["Edit Slot"] = true
 L["Clear Mode"] = true
 L["Duplicate Mode"] = true
 L["Template Mode"] = true
+L["Item ID"] = true

@@ -10,6 +10,10 @@ private.tooltip = CreateFrame("GameTooltip", "BankOfficerTooltip", UIParent, "Ga
 local methods = {
 
 	All = {
+		OnNotifyChange = function(widget, func)
+			widget:SetUserData("OnNotifyChange", func)
+		end,
+
 		SetSize = function(widget, width, height)
 			widget:SetWidth(width)
 			widget:SetHeight(height)
@@ -35,6 +39,20 @@ local methods = {
 		AddChildren = function(widget, ...)
 			for _, child in pairs({ ... }) do
 				widget:AddChild(child)
+			end
+		end,
+
+		NotifyChange = function(widget)
+			local notifyWidget = widget:GetUserData("OnNotifyChange")
+			if notifyWidget then
+				notifyWidget()
+			end
+
+			for _, child in pairs(widget.children) do
+				local notifyChild = child:GetUserData("OnNotifyChange")
+				if notifyChild then
+					notifyChild()
+				end
 			end
 		end,
 	},
@@ -91,4 +109,14 @@ function private:GetContentContainer(parent)
 	parent:SetUserData("content", scrollFrame)
 
 	return scrollFrame
+end
+
+--[[ Cache Item ]]
+function private:CacheItem(itemID, callback, args)
+	C_Timer.NewTicker(0.1, function(self)
+		if GetItemInfo(itemID) then
+			self:Cancel()
+			callback(BankOfficer.unpack(args, {}))
+		end
+	end)
 end

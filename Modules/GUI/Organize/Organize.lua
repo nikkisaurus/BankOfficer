@@ -35,49 +35,24 @@ end
 
 --[[ Local Functions ]]
 -- EditMode
-local function SetEditMode(controls, mode)
-	private.status.editMode = mode
-	for _, child in pairs(controls.children) do
-		child.image:SetVertexColor(1, 1, 1)
-	end
-end
-
 local function duplicateMode_OnClick(self)
-	if not self:GetUserData("enabled") then
-		return
-	end
-
+	self.parent:NotifyChange()
 	if private.status.editMode == "duplicate" then
-		SetEditMode(self.parent)
+		private.status.editMode = nil
 		ClearCursor()
 	else
-		SetEditMode(self.parent, "duplicate")
+		private.status.editMode = "duplicate"
 		self.image:SetVertexColor(1, 0.82, 0)
 	end
 end
 
 local function clearMode_OnClick(self)
-	if not self:GetUserData("enabled") then
-		return
-	end
-
+	self.parent:NotifyChange()
 	if private.status.editMode == "clear" then
-		SetEditMode(self.parent)
+		private.status.editMode = nil
+		ClearCursor()
 	else
-		SetEditMode(self.parent, "clear")
-		self.image:SetVertexColor(1, 0.82, 0)
-	end
-end
-
-local function templateMode_OnClick(self)
-	if not self:GetUserData("enabled") then
-		return
-	end
-
-	if private.status.editMode == "template" then
-		SetEditMode(self.parent)
-	else
-		SetEditMode(self.parent, "template")
+		private.status.editMode = "clear"
 		self.image:SetVertexColor(1, 0.82, 0)
 	end
 end
@@ -87,7 +62,7 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 	private.status.guildKey = guildKey
 
 	local parent = self.parent
-	local tabs = parent.children[3]
+	local tabs = parent.children[#parent.children]
 
 	tabs:SetTabs(GetTabs(guildKey))
 
@@ -98,24 +73,21 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 		slot.frame:RegisterForDrag("LeftButton")
 		slot:SetCallback("OnClick", private.OrganizeSlot_OnClick)
 		slot:SetCallback("OnRelease", function()
-			slot.frame:HookScript("OnDragStart")
-			slot.frame:HookScript("OnDragStop")
-			slot.frame:HookScript("OnReceiveDrag")
 			slot.frame:RegisterForClicks("LeftButtonUp")
 			slot.frame:RegisterForDrag()
+			BankOfficer:Unhook(slot.frame, "OnDragStart")
+			BankOfficer:Unhook(slot.frame, "OnDragStop")
+			BankOfficer:Unhook(slot.frame, "OnReceiveDrag")
 		end)
-		slot.frame:HookScript("OnDragStart", private.OrganizeSlot_OnDragStart)
-		slot.frame:HookScript("OnDragStop", private.OrganizeSlot_OnDragStop)
-		slot.frame:HookScript("OnReceiveDrag", private.OrganizeSlot_OnReceiveDrag)
+		BankOfficer:HookScript(slot.frame, "OnDragStart", private.OrganizeSlot_OnDragStart)
+		BankOfficer:HookScript(slot.frame, "OnDragStop", private.OrganizeSlot_OnDragStop)
+		BankOfficer:HookScript(slot.frame, "OnReceiveDrag", private.OrganizeSlot_OnReceiveDrag)
 
 		tabs:AddChild(slot)
 	end
 
 	tabs:SelectTab(1)
-
-	for _, child in pairs(parent.children[2].children) do
-		child:SetUserData("enabled", true)
-	end
+	parent.children[2]:NotifyChange() -- Update controls
 end
 
 -- Load tab info onto slots
@@ -134,16 +106,33 @@ function private:DrawOrganizeContent(parent)
 	selectGuild:SetList(GetGuildsList())
 	selectGuild:SetCallback("OnValueChanged", selectGuild_OnValueChanged)
 
+	-- Controls
 	local controls = AceGUI:Create("InlineGroup")
 	private:EmbedMethods(controls, { "Container" })
 	controls:SetLayout("Flow")
 	controls:SetFullWidth(true)
 
+	controls:OnNotifyChange(function()
+		local children = controls.children
+		for _, child in pairs(children) do
+			if child.SetDisabled then
+				child:SetDisabled(not private.status.guildKey)
+			end
+			if child.image then
+				child.image:SetVertexColor(1, 1, 1)
+			end
+		end
+	end)
+
+	local templateMode = AceGUI:Create("Dropdown")
+	private:EmbedMethods(templateMode, {})
+	templateMode:SetList({})
+
 	local duplicateMode = AceGUI:Create("Icon")
 	private:EmbedMethods(duplicateMode, {})
 	duplicateMode:SetImage(self.media .. [[clone-solid]])
 	duplicateMode:SetImageSize(14, 14)
-	duplicateMode:SetLabel(L["Duplicate Mode"])
+	duplicateMode:SetSize(20, 20)
 	duplicateMode:SetTooltip("ANCHOR_TOPRIGHT ", 0, 0, { { L["Duplicate Mode"] } })
 	duplicateMode:SetCallback("OnClick", duplicateMode_OnClick)
 
@@ -151,20 +140,19 @@ function private:DrawOrganizeContent(parent)
 	private:EmbedMethods(clearMode, {})
 	clearMode:SetImage(self.media .. [[ban-solid]])
 	clearMode:SetImageSize(14, 14)
-	clearMode:SetLabel(L["Clear Mode"])
+	clearMode:SetSize(20, 20)
 	clearMode:SetTooltip("ANCHOR_TOPRIGHT ", 0, 0, { { L["Clear Mode"] } })
 	clearMode:SetCallback("OnClick", clearMode_OnClick)
 
-	local templateMode = AceGUI:Create("Icon")
-	private:EmbedMethods(templateMode, {})
-	templateMode:SetImage(self.media .. [[link-solid]])
-	templateMode:SetImageSize(14, 14)
-	templateMode:SetLabel(L["Template Mode"])
-	templateMode:SetTooltip("ANCHOR_TOPRIGHT ", 0, 0, { { L["Template Mode"] } })
-	templateMode:SetCallback("OnClick", templateMode_OnClick)
+	local editOrganizeSlot = AceGUI:Create("InlineGroup")
+	private:EmbedMethods(editOrganizeSlot, { "Container" })
+	editOrganizeSlot:SetLayout("Flow")
+	editOrganizeSlot:SetFullWidth(true)
 
-	controls:AddChildren(duplicateMode, clearMode, templateMode)
+	controls:AddChildren(templateMode, duplicateMode, clearMode, editOrganizeSlot)
+	controls:NotifyChange() -- Updates disabled status
 
+	-- Tabs
 	local tabs = AceGUI:Create("TabGroup")
 	private:EmbedMethods(tabs, { "Container" })
 	tabs:SetLayout("BankOfficer_GuildBankTab")
