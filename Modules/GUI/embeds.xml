@@ -2,6 +2,7 @@
     <Include file="Helper.lua"/>
     <Include file="Layouts.lua"/>
     <Include file="BankOfficerFrame.lua"/>
-    <Include file="Organize/OrganizeSlot.lua"/>
+    <Include file="Widgets/OrganizeSlot.lua"/>
+    <!--<Include file="Organize/OrganizeSlot.lua"/>-->
     <Include file="Organize/Organize.lua"/>
 </Ui>

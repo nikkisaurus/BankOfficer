@@ -37,6 +37,22 @@ local function GetTabs(guildKey)
 	return tabs
 end
 
+local templates = {}
+local function GetTemplates()
+	wipe(templates)
+	wipe(sort)
+
+	for templateName, templateInfo in BankOfficer.pairs(private.db.global.templates) do
+		templates[templateName] = templateName
+		tinsert(sort, templateName)
+	end
+
+	templates["BANKOFFICER_TEMPLATE_NONE"] = L["None"]
+	tinsert(sort, "BANKOFFICER_TEMPLATE_NONE")
+
+	return templates, sort
+end
+
 --[[ Script handlers ]]
 local function duplicateMode_OnClick(self)
 	self.parent:NotifyChange()
@@ -68,24 +84,25 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 
 	tabs:SetTabs(GetTabs(guildKey))
 
-	for slotID = 1, 98 do
-		local slot = AceGUI:Create("Icon")
-		slot:SetUserData("slotID", slotID)
-		slot.frame:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-		slot.frame:RegisterForDrag("LeftButton")
-		slot:SetCallback("OnClick", private.OrganizeSlot_OnClick)
-		slot:SetCallback("OnRelease", function()
-			slot.frame:RegisterForClicks("LeftButtonUp")
-			slot.frame:RegisterForDrag()
-			BankOfficer:Unhook(slot.frame, "OnDragStart")
-			BankOfficer:Unhook(slot.frame, "OnDragStop")
-			BankOfficer:Unhook(slot.frame, "OnReceiveDrag")
-		end)
-		BankOfficer:HookScript(slot.frame, "OnDragStart", private.OrganizeSlot_OnDragStart)
-		BankOfficer:HookScript(slot.frame, "OnDragStop", private.OrganizeSlot_OnDragStop)
-		BankOfficer:HookScript(slot.frame, "OnReceiveDrag", private.OrganizeSlot_OnReceiveDrag)
+	if private.status.organize.guildKey then
+		for slotID = 1, 98 do
+			local slot = AceGUI:Create("BankOfficerOrganizeSlot")
+			slot:SetUserData("slotID", slotID)
 
-		tabs:AddChild(slot)
+			--slot:SetCallback("OnClick", private.OrganizeSlot_OnClick)
+			--slot:SetCallback("OnRelease", function()
+			--	slot.frame:RegisterForClicks("LeftButtonUp")
+			--	slot.frame:RegisterForDrag()
+			--	BankOfficer:Unhook(slot.frame, "OnDragStart")
+			--	BankOfficer:Unhook(slot.frame, "OnDragStop")
+			--	BankOfficer:Unhook(slot.frame, "OnReceiveDrag")
+			--end)
+			--BankOfficer:HookScript(slot.frame, "OnDragStart", private.OrganizeSlot_OnDragStart)
+			--BankOfficer:HookScript(slot.frame, "OnDragStop", private.OrganizeSlot_OnDragStop)
+			--BankOfficer:HookScript(slot.frame, "OnReceiveDrag", private.OrganizeSlot_OnReceiveDrag)
+
+			tabs:AddChild(slot)
+		end
 	end
 
 	if not private.status.organize.tab then
@@ -98,8 +115,20 @@ end
 local function tabs_OnGroupSelected(self, _, tab)
 	private.status.organize.tab = tab
 
-	for slotID = 1, 98 do
-		private:LoadOrganizeSlotItem(self.children[slotID])
+	for _, child in pairs(self.children) do
+		child:LoadSlot()
+	end
+end
+
+local function templateMode_OnValueChanged(self, _, templateName)
+	if templateName == "BANKOFFICER_TEMPLATE_NONE" then
+		self:SetText("")
+		ClearCursor()
+	else
+		private.status.organize.editMode = "duplicate"
+		local templateInfo = private.db.global.templates[templateName]
+		private.status.organize.cursorInfo = templateInfo
+		PickupItem(templateInfo.itemID)
 	end
 end
 
@@ -130,7 +159,8 @@ function private:DrawOrganizeContent(parent)
 
 	local templateMode = AceGUI:Create("Dropdown")
 	private:EmbedMethods(templateMode, {})
-	templateMode:SetList({})
+	templateMode:SetList(GetTemplates())
+	templateMode:SetCallback("OnValueChanged", templateMode_OnValueChanged)
 
 	local duplicateMode = AceGUI:Create("Icon")
 	private:EmbedMethods(duplicateMode, {})

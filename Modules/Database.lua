@@ -2,11 +2,15 @@ local addonName, private = ...
 local BankOfficer = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 
+private.stack = [[function()
+    return 1
+end]]
+
 function private:InitializeDatabase()
 	self.db = LibStub("AceDB-3.0"):New("BankOfficerDB", {
 		global = {
 			debug = {
-				enabled = true,
+				--enabled = true,
 				frames = {
 					BankOfficerFrame = true,
 				},
@@ -17,6 +21,7 @@ function private:InitializeDatabase()
 					["*"] = {},
 				},
 			},
+			templates = {},
 		},
 	}, true)
 

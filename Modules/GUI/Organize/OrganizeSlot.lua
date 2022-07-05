@@ -154,7 +154,8 @@ function private:LoadOrganizeSlotItem(slot)
 			"slotID"
 		)]
 	local isEmpty = not itemInfo or not itemInfo.itemID
-	slot:SetImage(isEmpty and self.media .. [[UI-SLOT-BACKGROUND]] or GetItemIcon(itemInfo.itemID))
+	--slot:SetNormalTexture(isEmpty and self.media .. [[UI-SLOT-BACKGROUND]] or GetItemIcon(itemInfo.itemID))
+	--slot:SetText(isEmpty and "" or itemInfo.stack)
 end
 
 function private:PickupOrganizeSlotItem(slot, itemID, duplicate)
@@ -175,6 +176,7 @@ function private:SaveOrganizeSlotItem(slot, itemID)
 
 	db[slotID] = {
 		itemID = itemID,
+		stack = [[function()\n    return 1\nend]],
 	}
 
 	private:LoadOrganizeSlotItem(slot)
