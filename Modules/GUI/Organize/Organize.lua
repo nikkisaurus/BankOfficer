@@ -65,6 +65,7 @@ local function clearMode_OnClick(self)
 	ClearCursor()
 	if private.status.organize.editMode == "clear" then
 		private.status.organize.editMode = nil
+		private.status.organize.duplicateInfo = nil
 	else
 		private.status.organize.editMode = "clear"
 		self.image:SetVertexColor(1, 0.82, 0)
@@ -75,6 +76,7 @@ local function duplicateMode_OnClick(self)
 	self.parent:NotifyChange()
 	if private.status.organize.editMode == "duplicate" then
 		private.status.organize.editMode = nil
+		private.status.organize.duplicateInfo = nil
 		ClearCursor()
 	else
 		private.status.organize.editMode = "duplicate"
@@ -197,10 +199,7 @@ local function templateMode_OnValueChanged(self, _, templateName)
 		ClearCursor()
 	else
 		private.status.organize.editMode = templateName
-
-		--local templateInfo = private.db.global.templates[templateName]
-		--private.status.organize.cursorInfo = templateInfo
-		--PickupItem(templateInfo.itemID)
+		private.status.organize.duplicateInfo = nil
 	end
 end
 
@@ -232,6 +231,9 @@ function private:DrawOrganizeContent(parent)
 			end
 			if child.SetValue then
 				child:SetValue("BANKOFFICER_TEMPLATE_NONE")
+				if private.status.organize.editMode == child:GetValue() then
+					private.status.organize.editMode = nil
+				end
 			end
 		end
 	end)

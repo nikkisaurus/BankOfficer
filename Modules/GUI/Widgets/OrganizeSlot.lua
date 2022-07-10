@@ -79,7 +79,7 @@ local function frame_onClick(frame, mouseButton)
 			end
 			widget:LoadCursorItem(itemID)
 		elseif not isEmpty then
-			widget:PickupItem()
+			widget:PickupItem(private.status.organize.editMode == "duplicate")
 		end
 	elseif mouseButton == "RightButton" then
 		if not isEmpty then
@@ -202,7 +202,7 @@ local methods = {
 	end,
 
 	LoadCursorItem = function(widget, itemID)
-		local cursorInfo = private.status.organize.cursorInfo
+		local cursorInfo = private.status.organize.duplicateInfo or private.status.organize.cursorInfo
 
 		if cursorInfo then
 			widget:UpdateSlotInfo(cursorInfo)
@@ -256,17 +256,19 @@ local methods = {
 				"slotID"
 			)]
 		local isEmpty = not slotInfo or not slotInfo.itemID
-
 		if isEmpty then
 			return
 		end
 
-		PickupItem(slotInfo.itemID)
-		private.status.organize.cursorInfo = slotInfo
+		if duplicate and not private.status.organize.duplicateInfo then
+			private.status.organize.duplicateInfo = BankOfficer.CloneTable(slotInfo)
+		end
 
-		local isDuplicate = private.status.organize.editMode == "duplicate" or duplicate
-		widget.image:SetDesaturated(not isDuplicate)
-		private.status.organize.originSlot = not isDuplicate and widget
+		PickupItem(slotInfo.itemID)
+		private.status.organize.cursorInfo = private.status.organize.duplicateInfo or slotInfo
+
+		widget.image:SetDesaturated(not duplicate)
+		private.status.organize.originSlot = not duplicate and widget
 	end,
 
 	UpdateSlotInfo = function(widget, info)
