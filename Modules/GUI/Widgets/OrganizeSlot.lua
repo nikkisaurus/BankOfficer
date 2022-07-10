@@ -107,7 +107,9 @@ local methods = {
 		if widget.frame:GetHeight() ~= width then
 			widget:SetHeight(width)
 
-			widget.label:SetFont([[Fonts\ARIALN.TTF]], width * 0.35, "OUTLINE, MONOCHROME")
+			local fontHeight = width * 0.35
+
+			widget.label:SetFont([[Fonts\ARIALN.TTF]], (fontHeight <= 0 and 1 or fontHeight), "OUTLINE, MONOCHROME")
 
 			local padding = width * 0.1
 			widget.label:SetPoint("LEFT", padding, 0)

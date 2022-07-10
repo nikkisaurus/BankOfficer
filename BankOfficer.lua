@@ -6,6 +6,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
 function BankOfficer:OnInitialize()
 	private:InitializeDatabase()
 	private:InitializeFrame()
+	private:InitializeSlashCommands()
 end
 
 --[[ OnEnable ]]

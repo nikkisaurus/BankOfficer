@@ -22,6 +22,12 @@ function private:InitializeDatabase()
 				},
 			},
 			templates = {},
+			settings = {
+				defaultGuild = "Born of Blood - Hyjal",
+				commands = {
+					bo = true,
+				},
+			},
 		},
 	}, true)
 
@@ -57,4 +63,22 @@ function private:InitializeGuild()
 	end
 
 	private.db.global.guilds[private.guildKey] = tabs
+end
+
+--[[ Slash Commands ]]
+function private:InitializeSlashCommands()
+	for command, enabled in pairs(self.db.global.settings.commands) do
+		if enabled then
+			BankOfficer:RegisterChatCommand(command, "SlashCommandFunc")
+		else
+			BankOfficer:UnregisterChatCommand(command)
+		end
+	end
+	return
+end
+
+function BankOfficer:SlashCommandFunc(input)
+	if not input or input == "" then
+		private:ToggleFrame()
+	end
 end

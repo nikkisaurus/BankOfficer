@@ -43,6 +43,7 @@ function private:InitializeFrame()
 	frame:SetTitle(L.addonName)
 	frame:SetSize(1000, 725)
 	frame:SetLayout("Fill")
+	private.frame = frame
 
 	local menu = AceGUI:Create("TreeGroup")
 	self:GetContentContainer(menu)
@@ -51,13 +52,17 @@ function private:InitializeFrame()
 
 	frame:AddChildren(menu)
 
-	private.organizeContextMenu = CreateFrame(
-		"Frame",
-		"BankOfficer_OrganizeContextMenu",
-		UIParent,
-		"UIDropDownMenuTemplate"
-	)
+	private.organizeContextMenu =
+		CreateFrame("Frame", "BankOfficer_OrganizeContextMenu", UIParent, "UIDropDownMenuTemplate")
 
 	-- Debug
 	menu:SelectByPath("Organize")
+end
+
+function private:ToggleFrame()
+	if private.frame:IsVisible() then
+		private.frame:Hide()
+	else
+		private.frame:Show()
+	end
 end

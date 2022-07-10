@@ -115,7 +115,7 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 end
 
 local function tabs_OnGroupSelected(self, _, tab)
-	private.status.organize.tab = tab
+	private.status.organize.tab = tab or 1
 
 	for _, child in pairs(self.children) do
 		child:LoadSlot()
@@ -193,11 +193,8 @@ function private:DrawOrganizeContent(parent)
 
 	parent:AddChildren(selectGuild, controls, tabs)
 
-	-- Restore guild
-	selectGuild:SetValue(private.status.organize.guildKey)
-	selectGuild_OnValueChanged(selectGuild, _, private.status.organize.guildKey)
-
-	-- Restore tab
-	tabs:SelectTab(private.status.organize.tab)
-	tabs_OnGroupSelected(tabs, _, private.status.organize.tab)
+	C_Timer.After(private.status.organize.guildKey and 0 or 0.1, function()
+		selectGuild:SetValue(private.status.organize.guildKey or private.db.global.settings.defaultGuild)
+		selectGuild:Fire("OnValueChanged", private.status.organize.guildKey or private.db.global.settings.defaultGuild)
+	end)
 end
