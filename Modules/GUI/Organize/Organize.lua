@@ -67,9 +67,9 @@ end
 
 local function clearMode_OnClick(self)
 	self.parent:NotifyChange()
+	ClearCursor()
 	if private.status.organize.editMode == "clear" then
 		private.status.organize.editMode = nil
-		ClearCursor()
 	else
 		private.status.organize.editMode = "clear"
 		self.image:SetVertexColor(1, 0.82, 0)
@@ -164,11 +164,15 @@ function private:DrawOrganizeContent(parent)
 	templateMode:SetList(GetTemplates())
 	templateMode:SetCallback("OnValueChanged", templateMode_OnValueChanged)
 
+	local spacer = AceGUI:Create("Label")
+	spacer:SetText(" ")
+	spacer:SetWidth(10)
+
 	local duplicateMode = AceGUI:Create("Icon")
 	private:EmbedMethods(duplicateMode, {})
 	duplicateMode:SetImage(self.media .. [[clone-solid]])
 	duplicateMode:SetImageSize(14, 14)
-	duplicateMode:SetSize(20, 20)
+	duplicateMode:SetSize(30, 20)
 	duplicateMode:SetTooltip("ANCHOR_TOPRIGHT ", 0, 0, { { L["Duplicate Mode"] } })
 	duplicateMode:SetCallback("OnClick", duplicateMode_OnClick)
 
@@ -176,11 +180,11 @@ function private:DrawOrganizeContent(parent)
 	private:EmbedMethods(clearMode, {})
 	clearMode:SetImage(self.media .. [[ban-solid]])
 	clearMode:SetImageSize(14, 14)
-	clearMode:SetSize(20, 20)
+	clearMode:SetSize(30, 20)
 	clearMode:SetTooltip("ANCHOR_TOPRIGHT ", 0, 0, { { L["Clear Mode"] } })
 	clearMode:SetCallback("OnClick", clearMode_OnClick)
 
-	controls:AddChildren(templateMode, duplicateMode, clearMode)
+	controls:AddChildren(templateMode, spacer, duplicateMode, clearMode)
 	controls:NotifyChange() -- Updates disabled status
 
 	-- Tabs
