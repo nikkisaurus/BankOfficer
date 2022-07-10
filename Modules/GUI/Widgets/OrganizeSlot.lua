@@ -307,6 +307,7 @@ local function Constructor()
 					button.obj.image:SetDesaturated(false)
 				end
 			end
+			private.status.organize.duplicateInfo = nil
 		end)
 	end
 

@@ -10,11 +10,11 @@ AceGUI:RegisterLayout("BankOfficer_GuildBankTab", function(content, children)
 		child:ClearAllPoints()
 		child:SetWidth(width)
 		child:SetHeight(width)
-		--child:SetImageSize(width, width)
 
-		local row = ceil(slot / 14)
-		local col = mod(slot, 14)
-		col = col > 0 and col or 14
+		local col = ceil(slot / 7)
+		local row = mod(slot, 7)
+		row = row > 0 and row or slot / col
+
 		local offsetX = (col - 1) * width
 		local offsetY = (row - 1) * width
 
