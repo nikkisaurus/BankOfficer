@@ -39,7 +39,7 @@ local function GetEasyMenu(widget)
 			{
 				text = L["Duplicate Slot"],
 				func = function()
-					widget:PickupItem()
+					widget:PickupItem(true)
 				end,
 			},
 			{
