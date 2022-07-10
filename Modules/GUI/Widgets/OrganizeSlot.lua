@@ -86,6 +86,45 @@ local function frame_onClick(frame, mouseButton)
 	end
 end
 
+local function frame_OnDragStart(frame)
+	local widget = frame.obj
+	local slotInfo =
+		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
+			"slotID"
+		)]
+	local isEmpty = not slotInfo or not slotInfo.itemID
+	if private.status.organize.editMode or isEmpty then
+		return
+	end
+
+	widget:PickupItem()
+end
+
+local function frame_OnReceiveDrag(frame)
+	local widget = frame.obj
+	local slotInfo =
+		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
+			"slotID"
+		)]
+	local isEmpty = not slotInfo or not slotInfo.itemID
+	if private.status.organize.editMode then
+		return
+	end
+
+	local cursorType, itemID = GetCursorInfo()
+	if cursorType == "item" then
+		if private.status.organize.originSlot then
+			if isEmpty then
+				private.status.organize.originSlot:ClearSlot()
+			else
+				print("Swap")
+				private.status.organize.originSlot:UpdateSlotInfo(slotInfo)
+			end
+		end
+		widget:LoadCursorItem(itemID)
+	end
+end
+
 --[[ Methods ]]
 local methods = {
 	OnAcquire = function(widget)
@@ -218,7 +257,8 @@ local function Constructor()
 
 	frame:SetMovable(true)
 	frame:RegisterForDrag("LeftButton")
-	--frame:SetScript("OnDragStart", frame_OnDragStart)
+	frame:SetScript("OnDragStart", frame_OnDragStart)
+	frame:SetScript("OnReceiveDrag", frame_OnReceiveDrag)
 
 	frame:SetNormalTexture(SLOTBUTTON_TEXTURE)
 	frame:SetHighlightTexture(SLOTBUTTON_HIGHLIGHTTEXTURE)
