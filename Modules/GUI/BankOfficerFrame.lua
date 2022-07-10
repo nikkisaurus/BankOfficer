@@ -36,7 +36,7 @@ end
 
 --[[ Private ]]
 function private:InitializeFrame()
-	local frame = AceGUI:Create("Window")
+	local frame = AceGUI:Create("Frame")
 	self:AddSpecialFrame(frame.frame, "BankOfficerFrame")
 	self:EmbedMethods(frame, { "Container" })
 

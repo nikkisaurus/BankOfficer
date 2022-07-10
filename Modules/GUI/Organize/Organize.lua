@@ -54,15 +54,10 @@ local function GetTemplates()
 end
 
 --[[ Script handlers ]]
-local function duplicateMode_OnClick(self)
-	self.parent:NotifyChange()
-	if private.status.organize.editMode == "duplicate" then
-		private.status.organize.editMode = nil
-		ClearCursor()
-	else
-		private.status.organize.editMode = "duplicate"
-		self.image:SetVertexColor(1, 0.82, 0)
-	end
+local function back_OnClick(self)
+	self.parent:ReleaseChildren()
+	private:DrawOrganizeContent(self.parent)
+	private.frame:SetStatusText("")
 end
 
 local function clearMode_OnClick(self)
@@ -76,9 +71,66 @@ local function clearMode_OnClick(self)
 	end
 end
 
-local function cancel_OnClick(self)
-	self.parent:ReleaseChildren()
-	private:DrawOrganizeContent(self.parent)
+local function duplicateMode_OnClick(self)
+	self.parent:NotifyChange()
+	if private.status.organize.editMode == "duplicate" then
+		private.status.organize.editMode = nil
+		ClearCursor()
+	else
+		private.status.organize.editMode = "duplicate"
+		self.image:SetVertexColor(1, 0.82, 0)
+	end
+end
+
+local function itemID_OnEnterPressed(self, itemID, slotID)
+	itemID = private:ValidateItem(itemID)
+	if not itemID then
+		return private.frame:SetStatusText("Invalid item id or link")
+	end
+
+	private:CacheItem(itemID)
+	local _, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(itemID)
+
+	if bindType and bindType ~= 1 then
+		local slotInfo =
+			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID]
+		local isEmpty = not slotInfo or not slotInfo.itemID
+
+		if isEmpty then
+			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID] =
+				{ itemID = itemID, stack = private.stack }
+		else
+			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID].itemID =
+				itemID
+		end
+
+		self.parent:NotifyChange()
+		self:ClearFocus()
+	else
+		private.frame:SetStatusText("Invalid item: bind on pickup")
+	end
+end
+
+local function saveTemplate_OnClick(self, slotID)
+	local slotInfo = private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID]
+	local isEmpty = not slotInfo or not slotInfo.itemID
+	if isEmpty then
+		return
+	end
+
+	local parentChildren = self.parent.children
+	local template = parentChildren[#parentChildren - 2]
+	local templateName = strupper(template:GetText())
+
+	if not templateName or templateName == "" then
+		return private.frame:SetStatusText(L["Missing template name"])
+	elseif private.db.global.templates[templateName] then
+		return private.frame:SetStatusText(L["Template exists"])
+	end
+
+	private.db.global.templates[templateName] = BankOfficer:CloneTable(slotInfo)
+	template:SetText("")
+	private.frame:SetStatusText("")
 end
 
 local function selectGuild_OnValueChanged(self, _, guildKey)
@@ -106,6 +158,30 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 	parent.children[2]:NotifyChange() -- Update controls
 end
 
+local function stack_OnEnterPressed(self, stack, slotID)
+	local slotInfo = private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID]
+	local isEmpty = not slotInfo or not slotInfo.itemID
+	if isEmpty then
+		return
+	end
+
+	local func = loadstring("return " .. stack)
+	if type(func) == "function" then
+		local success, userFunc = pcall(func)
+		if success and type(userFunc) == "function" then
+			local ret = userFunc()
+			if not ret or ret < 1 then
+				return private.frame:SetStatusText(L["Invalid stack function"])
+			end
+			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID].stack =
+				stack
+			private.frame:SetStatusText("")
+		else
+			private.frame:SetStatusText(L["Invalid stack function"])
+		end
+	end
+end
+
 local function tabs_OnGroupSelected(self, _, tab)
 	private.status.organize.tab = tab or 1
 
@@ -126,48 +202,8 @@ local function templateMode_OnValueChanged(self, _, templateName)
 	end
 end
 
-local function itemID_OnEnterPressed(self, itemID, slotID)
-	itemID = private:ValidateItem(itemID)
-	if not itemID then
-		return
-	end
-
-	private:CacheItem(itemID)
-	local _, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(itemID)
-
-	if bindType and bindType ~= 1 then
-		local slotInfo =
-			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID]
-		local isEmpty = not slotInfo or not slotInfo.itemID
-
-		if isEmpty then
-			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID] =
-				{ itemID = itemID, stack = private.stack }
-		else
-			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID].itemID =
-				itemID
-		end
-
-		self.parent:NotifyChange()
-		self:ClearFocus()
-	end
-end
-
-local function stack_OnEnterPressed(self, stack, slotID)
-	local slotInfo = private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID]
-	local isEmpty = not slotInfo or not slotInfo.itemID
-	if isEmpty then
-		return
-	end
-
-	local func = loadstring("return " .. stack)
-	if type(func) == "function" then
-		local success, userFunc = pcall(func)
-		if success and type(userFunc) == "function" then
-			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID].stack =
-				stack
-		end
-	end
+local function templateName_OnEnterPressed(self)
+	self:ClearFocus()
 end
 
 --[[ Private ]]
@@ -267,11 +303,21 @@ function private:EditOrganizeSlot(widget, slotID)
 		stack_OnEnterPressed(self, func, slotID)
 	end)
 
-	local close = AceGUI:Create("Button")
-	close:SetText(CLOSE)
-	close:SetCallback("OnClick", cancel_OnClick)
+	local templateName = AceGUI:Create("EditBox")
+	templateName:SetLabel(L["Template Name"])
+	templateName:SetCallback("OnEnterPressed", templateName_OnEnterPressed)
 
-	parent:AddChildren(title, item, itemID, stack, close)
+	local saveTemplate = AceGUI:Create("Button")
+	saveTemplate:SetText(L["Save as template"])
+	saveTemplate:SetCallback("OnClick", function(self)
+		saveTemplate_OnClick(self, slotID)
+	end)
+
+	local back = AceGUI:Create("Button")
+	back:SetText(BACK)
+	back:SetCallback("OnClick", back_OnClick)
+
+	parent:AddChildren(title, item, itemID, stack, templateName, saveTemplate, back)
 
 	parent:OnNotifyChange(function()
 		local slotInfo =
@@ -291,6 +337,7 @@ function private:EditOrganizeSlot(widget, slotID)
 		stack:SetText(not isEmpty and slotInfo.stack or "")
 
 		parent:DoLayout()
+		private.frame:SetStatusText("")
 	end)
 	parent:NotifyChange()
 end
