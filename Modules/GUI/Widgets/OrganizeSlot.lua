@@ -98,6 +98,11 @@ local methods = {
 		widget.label:SetPoint("BOTTOM", 0, padding)
 	end,
 
+	OnRelease = function(widget)
+		widget.frame:SetNormalTexture(private.media .. [[UI-SLOT-BACKGROUND]])
+		widget.frame:SetText(" ")
+	end,
+
 	OnWidthSet = function(widget, width)
 		if widget.frame:GetHeight() ~= width then
 			widget:SetHeight(width)
@@ -145,6 +150,9 @@ local methods = {
 	end,
 
 	LoadSlot = function(widget)
+		if not private.status.organize.guildKey or not private.status.organize.tab then
+			return
+		end
 		local slotInfo =
 			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
 				"slotID"
@@ -191,9 +199,7 @@ local methods = {
 		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
 			"slotID"
 		)] =
-			BankOfficer.CloneTable(
-				info
-			)
+			BankOfficer.CloneTable(info)
 		widget:LoadSlot()
 	end,
 }
@@ -228,12 +234,8 @@ local function Constructor()
 		end)
 	end
 
-	local contextMenu = CreateFrame(
-		"Frame",
-		Type .. AceGUI:GetNextWidgetNum(Type) .. "ContextMenu",
-		frame,
-		"UIDropDownMenuTemplate"
-	)
+	local contextMenu =
+		CreateFrame("Frame", Type .. AceGUI:GetNextWidgetNum(Type) .. "ContextMenu", frame, "UIDropDownMenuTemplate")
 
 	local widget = {
 		frame = frame,

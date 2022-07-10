@@ -83,11 +83,13 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 	local tabs = parent.children[#parent.children]
 
 	tabs:SetTabs(GetTabs(guildKey))
+	tabs:ReleaseChildren()
 
 	if private.status.organize.guildKey then
 		for slotID = 1, 98 do
 			local slot = AceGUI:Create("BankOfficerOrganizeSlot")
 			slot:SetUserData("slotID", slotID)
+			slot:LoadSlot()
 
 			--slot:SetCallback("OnClick", private.OrganizeSlot_OnClick)
 			--slot:SetCallback("OnRelease", function()
