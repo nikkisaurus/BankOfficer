@@ -24,3 +24,5 @@ L["Duplicate Mode"] = true
 L["Template Mode"] = true
 L["Item ID"] = true
 L["None"] = true
+L["Slot"] = true
+L["Stack"] = true

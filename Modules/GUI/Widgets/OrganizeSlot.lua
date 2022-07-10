@@ -12,14 +12,13 @@ local SLOTBUTTON_TEXTURE = [[INTERFACE\ADDONS\BANKOFFICER\MEDIA\UI-SLOT-BACKGROU
 --[[ Locals ]]
 -- Menus
 local function GetEasyMenu(widget)
-	local slotInfo =
-		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
-			"slotID"
-		)]
+	local slotID = widget:GetUserData("slotID")
+	local slotInfo = private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID]
 	local isEmpty = not slotInfo or not slotInfo.itemID
 
 	if isEmpty then
 		return {
+			{ text = widget:GetSlotTitle(), isTitle = true, notCheckable = true },
 			{
 				text = L["Edit Slot"],
 				func = function()
@@ -30,6 +29,7 @@ local function GetEasyMenu(widget)
 	else
 		return {
 			{ text = (GetItemInfo(slotInfo.itemID)), isTitle = true, notCheckable = true },
+			{ text = widget:GetSlotTitle(), isTitle = true, notCheckable = true },
 			{
 				text = L["Edit Slot"],
 				func = function()
@@ -70,7 +70,6 @@ local function frame_onClick(frame, mouseButton)
 				if isEmpty then
 					private.status.organize.originSlot:ClearSlot()
 				else
-					print("Swap")
 					private.status.organize.originSlot:UpdateSlotInfo(slotInfo)
 				end
 			end
@@ -98,6 +97,32 @@ local function frame_OnDragStart(frame)
 	end
 
 	widget:PickupItem()
+end
+
+local function frame_OnEnter(frame)
+	local widget = frame.obj
+	local slotInfo =
+		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
+			"slotID"
+		)]
+	local isEmpty = not slotInfo or not slotInfo.itemID
+	local tooltip = private.tooltip
+
+	tooltip:SetOwner(frame, "ANCHOR_RIGHT", 0, 0)
+	if not isEmpty then
+		private:CacheItem(slotInfo.itemID)
+		local _, itemLink = GetItemInfo(slotInfo.itemID)
+		tooltip:SetHyperlink(itemLink)
+		tooltip:AddLine(widget:GetSlotTitle(), 1, 1, 1)
+	else
+		tooltip:AddLine(widget:GetSlotTitle())
+	end
+	tooltip:Show()
+end
+
+local function frame_OnLeave(frame)
+	private.tooltip:ClearLines()
+	private.tooltip:Hide()
 end
 
 local function frame_OnReceiveDrag(frame)
@@ -165,7 +190,11 @@ local methods = {
 	end,
 
 	EditSlot = function(widget)
-		print("Edit slot")
+		private:EditOrganizeSlot(widget, widget:GetUserData("slotID"))
+	end,
+
+	GetSlotTitle = function(widget, slotID)
+		return L["Slot"] .. " " .. (slotID or widget:GetUserData("slotID") or "")
 	end,
 
 	LoadCursorItem = function(widget, itemID)
@@ -252,8 +281,8 @@ local function Constructor()
 	frame:SetText(" ")
 	frame:SetPushedTextOffset(0, 0)
 	frame:SetScript("OnClick", frame_onClick)
-	--frame:SetScript("OnEnter", frame_OnEnter)
-	--frame:SetScript("OnLeave", frame_OnLeave)
+	frame:SetScript("OnEnter", frame_OnEnter)
+	frame:SetScript("OnLeave", frame_OnLeave)
 
 	frame:SetMovable(true)
 	frame:RegisterForDrag("LeftButton")
@@ -271,7 +300,6 @@ local function Constructor()
 				if button then
 					button.obj.image:SetDesaturated(false)
 				end
-				--_G[Type .. i]:SetDesaturated(false)
 			end
 		end)
 	end

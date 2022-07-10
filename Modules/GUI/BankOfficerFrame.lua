@@ -41,7 +41,7 @@ function private:InitializeFrame()
 	self:EmbedMethods(frame, { "Container" })
 
 	frame:SetTitle(L.addonName)
-	frame:SetSize(1000, 725)
+	frame:SetSize(800, 550)
 	frame:SetLayout("Fill")
 	private.frame = frame
 

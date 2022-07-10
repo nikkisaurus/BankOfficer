@@ -76,6 +76,11 @@ local function clearMode_OnClick(self)
 	end
 end
 
+local function cancel_OnClick(self)
+	self.parent:ReleaseChildren()
+	private:DrawOrganizeContent(self.parent)
+end
+
 local function selectGuild_OnValueChanged(self, _, guildKey)
 	private.status.organize.guildKey = guildKey
 
@@ -90,19 +95,6 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 			local slot = AceGUI:Create("BankOfficerOrganizeSlot")
 			slot:SetUserData("slotID", slotID)
 			slot:LoadSlot()
-
-			--slot:SetCallback("OnClick", private.OrganizeSlot_OnClick)
-			--slot:SetCallback("OnRelease", function()
-			--	slot.frame:RegisterForClicks("LeftButtonUp")
-			--	slot.frame:RegisterForDrag()
-			--	BankOfficer:Unhook(slot.frame, "OnDragStart")
-			--	BankOfficer:Unhook(slot.frame, "OnDragStop")
-			--	BankOfficer:Unhook(slot.frame, "OnReceiveDrag")
-			--end)
-			--BankOfficer:HookScript(slot.frame, "OnDragStart", private.OrganizeSlot_OnDragStart)
-			--BankOfficer:HookScript(slot.frame, "OnDragStop", private.OrganizeSlot_OnDragStop)
-			--BankOfficer:HookScript(slot.frame, "OnReceiveDrag", private.OrganizeSlot_OnReceiveDrag)
-
 			tabs:AddChild(slot)
 		end
 	end
@@ -134,6 +126,50 @@ local function templateMode_OnValueChanged(self, _, templateName)
 	end
 end
 
+local function itemID_OnEnterPressed(self, itemID, slotID)
+	itemID = private:ValidateItem(itemID)
+	if not itemID then
+		return
+	end
+
+	private:CacheItem(itemID)
+	local _, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(itemID)
+
+	if bindType and bindType ~= 1 then
+		local slotInfo =
+			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID]
+		local isEmpty = not slotInfo or not slotInfo.itemID
+
+		if isEmpty then
+			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID] =
+				{ itemID = itemID, stack = private.stack }
+		else
+			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID].itemID =
+				itemID
+		end
+
+		self.parent:NotifyChange()
+		self:ClearFocus()
+	end
+end
+
+local function stack_OnEnterPressed(self, stack, slotID)
+	local slotInfo = private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID]
+	local isEmpty = not slotInfo or not slotInfo.itemID
+	if isEmpty then
+		return
+	end
+
+	local func = loadstring("return " .. stack)
+	if type(func) == "function" then
+		local success, userFunc = pcall(func)
+		if success and type(userFunc) == "function" then
+			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID].stack =
+				stack
+		end
+	end
+end
+
 --[[ Private ]]
 function private:DrawOrganizeContent(parent)
 	local selectGuild = AceGUI:Create("Dropdown")
@@ -161,6 +197,7 @@ function private:DrawOrganizeContent(parent)
 
 	local templateMode = AceGUI:Create("Dropdown")
 	private:EmbedMethods(templateMode, {})
+	templateMode:SetLabel("Apply Template")
 	templateMode:SetList(GetTemplates())
 	templateMode:SetCallback("OnValueChanged", templateMode_OnValueChanged)
 
@@ -201,4 +238,59 @@ function private:DrawOrganizeContent(parent)
 		selectGuild:SetValue(private.status.organize.guildKey or private.db.global.settings.defaultGuild)
 		selectGuild:Fire("OnValueChanged", private.status.organize.guildKey or private.db.global.settings.defaultGuild)
 	end)
+end
+
+function private:EditOrganizeSlot(widget, slotID)
+	local parent = widget.parent.parent
+	parent:ReleaseChildren()
+
+	local title = AceGUI:Create("Label")
+	title:SetFullWidth(true)
+	title:SetFontObject(GameFontNormalLarge)
+	title:SetColor(1, 0.82, 0)
+	title:SetText(widget:GetSlotTitle(slotID))
+
+	local item = AceGUI:Create("Label")
+	item:SetFullWidth(true)
+	item:SetImageSize(16, 16)
+
+	local itemID = AceGUI:Create("EditBox")
+	itemID:SetLabel(L["Item ID"])
+	itemID:SetCallback("OnEnterPressed", function(self, _, itemID)
+		itemID_OnEnterPressed(self, itemID, slotID)
+	end)
+
+	local stack = AceGUI:Create("MultiLineEditBox")
+	stack:SetFullWidth(true)
+	stack:SetLabel(L["Stack"])
+	stack:SetCallback("OnEnterPressed", function(self, _, func)
+		stack_OnEnterPressed(self, func, slotID)
+	end)
+
+	local close = AceGUI:Create("Button")
+	close:SetText(CLOSE)
+	close:SetCallback("OnClick", cancel_OnClick)
+
+	parent:AddChildren(title, item, itemID, stack, close)
+
+	parent:OnNotifyChange(function()
+		local slotInfo =
+			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID]
+		local isEmpty = not slotInfo or not slotInfo.itemID
+		local itemName
+		if not isEmpty then
+			private:CacheItem(slotInfo.itemID)
+			itemName = GetItemInfo(slotInfo.itemID)
+		end
+
+		item:SetText(not isEmpty and itemName or "")
+		item:SetImage(not isEmpty and GetItemIcon(slotInfo.itemID))
+
+		itemID:SetText(not isEmpty and slotInfo.itemID or "")
+
+		stack:SetText(not isEmpty and slotInfo.stack or "")
+
+		parent:DoLayout()
+	end)
+	parent:NotifyChange()
 end
