@@ -56,7 +56,7 @@ function private:InitializeFrame()
 		CreateFrame("Frame", "BankOfficer_OrganizeContextMenu", UIParent, "UIDropDownMenuTemplate")
 
 	-- Debug
-	menu:SelectByPath("Organize")
+	menu:SelectByPath("Restock")
 end
 
 function private:ToggleFrame()

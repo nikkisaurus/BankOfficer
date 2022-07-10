@@ -68,6 +68,19 @@ function private:InitializeGuild()
 	private.db.global.guilds[private.guildKey] = tabs
 end
 
+local guilds, sort = {}, {}
+function private:GetGuildsList()
+	wipe(guilds)
+	wipe(sort)
+
+	for guildKey, _ in BankOfficer.pairs(private.db.global.guilds) do
+		guilds[guildKey] = guildKey
+		tinsert(sort, guildKey)
+	end
+
+	return guilds, sort
+end
+
 --[[ Slash Commands ]]
 function private:InitializeSlashCommands()
 	for command, enabled in pairs(self.db.global.settings.commands) do

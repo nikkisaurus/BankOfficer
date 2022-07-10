@@ -5,19 +5,6 @@ local AceGUI = LibStub("AceGUI-3.0")
 
 --[[ Locals ]]
 -- Lists
-local guilds, sort = {}, {}
-local function GetGuildsList()
-	wipe(guilds)
-	wipe(sort)
-
-	for guildKey, _ in BankOfficer.pairs(private.db.global.guilds) do
-		guilds[guildKey] = guildKey
-		tinsert(sort, guildKey)
-	end
-
-	return guilds, sort
-end
-
 local tabs = {}
 local function GetTabs(guildKey)
 	wipe(tabs)
@@ -37,7 +24,7 @@ local function GetTabs(guildKey)
 	return tabs
 end
 
-local templates = {}
+local templates, sort = {}, {}
 local function GetTemplates()
 	wipe(templates)
 	wipe(sort)
@@ -228,7 +215,7 @@ end
 function private:DrawOrganizeContent(parent)
 	local selectGuild = AceGUI:Create("Dropdown")
 	selectGuild:SetFullWidth(true)
-	selectGuild:SetList(GetGuildsList())
+	selectGuild:SetList(private:GetGuildsList())
 	selectGuild:SetCallback("OnValueChanged", selectGuild_OnValueChanged)
 
 	-- Controls
