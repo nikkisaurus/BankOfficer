@@ -10,7 +10,7 @@ function private:InitializeDatabase()
 	self.db = LibStub("AceDB-3.0"):New("BankOfficerDB", {
 		global = {
 			debug = {
-				enabled = true,
+				--enabled = true,
 				frames = {
 					BankOfficerFrame = true,
 				},
@@ -84,6 +84,6 @@ function BankOfficer:SlashCommandFunc(input)
 	if not input or input == "" then
 		private:ToggleFrame()
 	elseif input == "organize" then
-		private:OrganizeBank()
+		private:StartBankOrganize()
 	end
 end
