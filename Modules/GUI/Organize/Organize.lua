@@ -135,6 +135,11 @@ local function saveTemplate_OnClick(self, slotID)
 	private.frame:SetStatusText("")
 end
 
+-- Called in selectGuild_OnValueChanged
+local function stockSource_OnValueChanged(self, _, checked)
+	private.db.global.restockTabs[private.status.organize.guildKey][private.status.organize.tab] = checked
+end
+
 local function selectGuild_OnValueChanged(self, _, guildKey)
 	private.status.organize.guildKey = guildKey
 
@@ -144,6 +149,7 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 	tabs:SetTabs(GetTabs(guildKey))
 	tabs:ReleaseChildren()
 
+	local stockSource
 	if private.status.organize.guildKey then
 		for slotID = 1, 98 do
 			local slot = AceGUI:Create("BankOfficerOrganizeSlot")
@@ -151,6 +157,13 @@ local function selectGuild_OnValueChanged(self, _, guildKey)
 			slot:LoadSlot()
 			tabs:AddChild(slot)
 		end
+
+		local stockSource = AceGUI:Create("CheckBox")
+		stockSource:SetFullWidth(true)
+		stockSource:SetLabel(L["Restock from this tab"])
+		stockSource:SetCallback("OnValueChanged", stockSource_OnValueChanged)
+
+		tabs:AddChild(stockSource)
 	end
 
 	if not private.status.organize.tab then
@@ -187,8 +200,12 @@ end
 local function tabs_OnGroupSelected(self, _, tab)
 	private.status.organize.tab = tab or 1
 
-	for _, child in pairs(self.children) do
-		child:LoadSlot()
+	for slotID, child in pairs(self.children) do
+		if slotID <= 98 then
+			child:LoadSlot()
+		else
+			child:SetValue(private.db.global.restockTabs[private.status.organize.guildKey][private.status.organize.tab])
+		end
 	end
 end
 

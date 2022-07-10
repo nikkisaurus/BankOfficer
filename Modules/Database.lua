@@ -21,6 +21,9 @@ function private:InitializeDatabase()
 					["*"] = {},
 				},
 			},
+			restockTabs = {
+				["*"] = {},
+			},
 			templates = {},
 			settings = {
 				defaultGuild = "Born of Blood - Hyjal",
@@ -80,5 +83,7 @@ end
 function BankOfficer:SlashCommandFunc(input)
 	if not input or input == "" then
 		private:ToggleFrame()
+	elseif input == "organize" then
+		private:OrganizeBank()
 	end
 end

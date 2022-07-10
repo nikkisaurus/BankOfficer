@@ -8,8 +8,10 @@ AceGUI:RegisterLayout("BankOfficer_GuildBankTab", function(content, children)
 	for slot, child in pairs(children) do
 		local frame = child.frame
 		child:ClearAllPoints()
-		child:SetWidth(width)
-		child:SetHeight(width)
+		if slot <= 98 then
+			child:SetWidth(width)
+			child:SetHeight(width)
+		end
 
 		local col = ceil(slot / 7)
 		local row = mod(slot, 7)
@@ -18,8 +20,12 @@ AceGUI:RegisterLayout("BankOfficer_GuildBankTab", function(content, children)
 		local offsetX = (col - 1) * width
 		local offsetY = (row - 1) * width
 
-		child:SetPoint("TOPLEFT", offsetX, -offsetY)
+		if slot <= 98 then
+			child:SetPoint("TOPLEFT", offsetX, -offsetY)
+		else
+			child:SetPoint("TOPLEFT", 0, -(width * 7))
+		end
 	end
 
-	content.obj:LayoutFinished(nil, #children > 0 and width * 7 or 0)
+	content.obj:LayoutFinished(nil, (#children > 0 and width * 7 or 0) + 20)
 end)

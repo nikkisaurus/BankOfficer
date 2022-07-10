@@ -33,3 +33,4 @@ L["Template exists"] = true
 L["Invalid stack function"] = true
 L["Invalid item ID or link"] = true
 L["Invalid item: bind on pickup"] = true
+L["Restock from this tab"] = true
