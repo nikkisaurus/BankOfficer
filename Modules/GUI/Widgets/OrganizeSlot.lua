@@ -63,7 +63,11 @@ local function frame_onClick(frame, mouseButton)
 
 	if mouseButton == "LeftButton" then
 		local cursorType, itemID = GetCursorInfo()
-		if private.status.organize.editMode == "clear" then
+		local template = private.db.global.templates[private.status.organize.editMode]
+
+		if template then
+			widget:UpdateSlotInfo(template)
+		elseif private.status.organize.editMode == "clear" then
 			widget:ClearSlot()
 		elseif cursorType == "item" then
 			if private.status.organize.originSlot then

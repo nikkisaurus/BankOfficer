@@ -128,7 +128,7 @@ local function saveTemplate_OnClick(self, slotID)
 		return private.frame:SetStatusText(L["Template exists"])
 	end
 
-	private.db.global.templates[templateName] = BankOfficer:CloneTable(slotInfo)
+	private.db.global.templates[templateName] = BankOfficer.CloneTable(slotInfo)
 	template:SetText("")
 	private.frame:SetStatusText("")
 end
@@ -192,13 +192,15 @@ end
 
 local function templateMode_OnValueChanged(self, _, templateName)
 	if templateName == "BANKOFFICER_TEMPLATE_NONE" then
+		private.status.organize.editMode = nil
 		self:SetText("")
 		ClearCursor()
 	else
-		private.status.organize.editMode = "duplicate"
-		local templateInfo = private.db.global.templates[templateName]
-		private.status.organize.cursorInfo = templateInfo
-		PickupItem(templateInfo.itemID)
+		private.status.organize.editMode = templateName
+
+		--local templateInfo = private.db.global.templates[templateName]
+		--private.status.organize.cursorInfo = templateInfo
+		--PickupItem(templateInfo.itemID)
 	end
 end
 
@@ -227,6 +229,9 @@ function private:DrawOrganizeContent(parent)
 			end
 			if child.image then
 				child.image:SetVertexColor(1, 1, 1)
+			end
+			if child.SetValue then
+				child:SetValue("BANKOFFICER_TEMPLATE_NONE")
 			end
 		end
 	end)
