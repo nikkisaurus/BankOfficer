@@ -97,6 +97,10 @@ function BankOfficer:SlashCommandFunc(input)
 	if not input or input == "" then
 		private:ToggleFrame()
 	elseif input == "organize" then
-		private:StartBankOrganize()
+		private:OrganizeBank()
+		--private:StartOrganizeBank()
+		--private:StartBankOrganize()
+	elseif input == "cancel" then
+		private.status.cancelOrganize = true
 	end
 end

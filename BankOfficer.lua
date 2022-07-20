@@ -14,6 +14,8 @@ function BankOfficer:OnEnable()
 	if private.db.global.debug.enabled then
 		C_Timer.After(1, private.StartDebug)
 	end
+	BankOfficer:RegisterEvent("GUILDBANKFRAME_OPENED")
+	BankOfficer:RegisterEvent("GUILDBANKFRAME_CLOSED")
 end
 
 --[[ StartDebug ]]
