@@ -3,7 +3,7 @@
 ## Notes: Tools to help bank officers maintain guild banks
 ## Author: Nikketa-Hyjal (US)
 ## Version: @project-version@
-## SavedVariables: BankOfficerDB
+## SavedVariables: BankOfficerDB, BankOfficerDevDB
 
 Libs\lib.xml
 Locales\en-us.lua
