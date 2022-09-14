@@ -1,44 +1,26 @@
 local addonName, private = ...
-local BankOfficer = LibStub("AceAddon-3.0"):GetAddon(addonName)
-local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
-
-private.stack = [[function()
-    return 1
-end]]
+local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
+local L = private.L
 
 function private:InitializeDatabase()
-	self.db = LibStub("AceDB-3.0"):New("BankOfficerDB", {
+	private.db = LibStub("AceDB-3.0"):New("BankOfficerDevDB", {
 		global = {
-			debug = {
-				--enabled = true,
-				frames = {
-					BankOfficerFrame = true,
-				},
-			},
+			debug = true,
 			guilds = {},
-			organize = {
-				["*"] = {
-					["*"] = {},
-				},
-			},
-			restockTabs = {
-				["*"] = {},
-			},
-			templates = {},
 			settings = {
-				defaultGuild = "Born of Blood - Hyjal",
+				-- defaultGuild = "Born of Blood - Hyjal",
+
+				dateFormat = "%x (%I:%M %p)", -- "%x (%X)"
 				commands = {
 					bo = true,
+					bankofficer = true,
 				},
 			},
 		},
 	}, true)
 
-	self:InitializeGuild()
+	private:InitializeGuild()
 end
-
---[[ Guild ]]
-local tabs = {}
 
 function private:InitializeGuild()
 	local guild = (GetGuildInfo("player"))
@@ -52,6 +34,9 @@ function private:InitializeGuild()
 	end
 
 	private.guildKey = realm and format("%s - %s", guild, realm)
+	private.db.global.guilds[private.guildKey] = private.db.global.guilds[private.guildKey]
+		or addon.CloneTable(private.defaults.guild)
+	local tabs = private.db.global.guilds[private.guildKey].tabs
 
 	wipe(tabs)
 
@@ -64,43 +49,20 @@ function private:InitializeGuild()
 			end
 		end)
 	end
-
-	private.db.global.guilds[private.guildKey] = tabs
 end
 
-local guilds, sort = {}, {}
-function private:GetGuildsList()
-	wipe(guilds)
-	wipe(sort)
-
-	for guildKey, _ in BankOfficer.pairs(private.db.global.guilds) do
-		guilds[guildKey] = guildKey
-		tinsert(sort, guildKey)
-	end
-
-	return guilds, sort
-end
-
---[[ Slash Commands ]]
-function private:InitializeSlashCommands()
-	for command, enabled in pairs(self.db.global.settings.commands) do
-		if enabled then
-			BankOfficer:RegisterChatCommand(command, "SlashCommandFunc")
-		else
-			BankOfficer:UnregisterChatCommand(command)
-		end
-	end
-	return
-end
-
-function BankOfficer:SlashCommandFunc(input)
-	if not input or input == "" then
-		private:ToggleFrame()
-	elseif input == "organize" then
-		private:OrganizeBank()
-		--private:StartOrganizeBank()
-		--private:StartBankOrganize()
-	elseif input == "cancel" then
-		private.status.cancelOrganize = true
-	end
-end
+private.defaults = {
+	guild = {
+		tabs = {},
+		organize = {},
+		restock = {},
+		scans = {},
+	},
+	restockRule = {
+		quantity = 1,
+		ids = {},
+	},
+	stack = [[function()
+	return 1
+end]],
+}
