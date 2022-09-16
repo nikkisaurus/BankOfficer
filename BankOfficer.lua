@@ -26,8 +26,13 @@ function addon:PLAYER_ENTERING_WORLD()
 end
 
 function addon:SlashCommandFunc(input)
+	input = strlower(input)
 	if not input or input:trim() == "" then
 		private:OpenOptions()
+	elseif input == "organize" then
+		private:OrganizeBank()
+	elseif input == "restock" then
+		private:GetBankRestock()
 	end
 end
 

@@ -38,7 +38,7 @@ function private:GetOrganizeOptions(guildKey, organize)
 			type = "input",
 			dialogControl = "BankOfficer_OrganizeGroup",
 			width = "full",
-			name = "",
+			name = guildKey,
 		},
 	}
 

@@ -13,22 +13,19 @@ local methods = {
 	OnAcquire = function(widget)
 		widget.frame:SetSize(200, 200)
 		widget.frame:Show()
-
-		local guildKey = private.optionsPath and private.optionsPath[1]
-		if guildKey then
-			widget:LoadSlots(guildKey)
-		end
+		widget:LoadSlots()
 	end,
 
-	LoadSlots = function(widget, guildKey)
-		local guild = private.db.global.guilds[guildKey]
+	LoadSlots = function(widget)
+		local guildKey = widget:GetUserData("guildKey")
+		local guild = guildKey and private.db.global.guilds[guildKey]
 		local tabs = {}
 
 		for tab = 1, MAX_GUILDBANK_TABS do
 			tinsert(tabs, {
 				value = "tab" .. tab,
 				text = format("%s %d", L["Tab"], tab),
-				disabled = tab > guild.numTabs,
+				disabled = tab > (guild and guild.numTabs or MAX_GUILDBANK_TABS),
 			})
 		end
 
@@ -39,9 +36,11 @@ local methods = {
 		widget.tabGroup:OnWidthSet(...)
 	end,
 
-	SetLabel = function(widget) end,
+	SetLabel = function(widget, guildKey)
+		widget:SetUserData("guildKey", guildKey)
+	end,
 
-	SetText = function(widget) end,
+	SetText = function(widget, ...) end,
 }
 
 local function Constructor()
@@ -53,7 +52,7 @@ local function Constructor()
 	tabGroup:SetLayout("Flow")
 	tabGroup:SetLayout("BankOfficer_GuildBankTab")
 	tabGroup:SetCallback("OnGroupSelected", function(self, _, group)
-		local guildKey = private.optionsPath and private.optionsPath[1]
+		local guildKey = self.obj:GetUserData("guildKey")
 		local tab = tonumber(gsub(group, "tab", "") or "")
 
 		self:ReleaseChildren()
@@ -86,6 +85,7 @@ local function Constructor()
 	}
 
 	frame.obj = widget
+	tabGroup.obj = widget
 
 	for method, func in pairs(methods) do
 		widget[method] = func

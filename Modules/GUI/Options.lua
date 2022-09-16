@@ -44,7 +44,6 @@ function private:GetGuilds()
 					order = 4,
 					type = "group",
 					name = L["Organize"],
-					-- childGroups = "tab",
 					args = private:GetOrganizeOptions(guildKey, guild.organize),
 				},
 				review = {
@@ -82,6 +81,7 @@ function private:InitializeOptions()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, private:GetOptions())
 	private.options = ACR:GetOptionsTable(addonName, "dialog", addonName .. "-1.0")
 	private.frame = AceGUI:Create("Frame")
+	private.frame:Hide()
 	private.organizeContextMenu =
 		CreateFrame("Frame", "BankOfficer_OrganizeContextMenu", UIParent, "UIDropDownMenuTemplate")
 end
