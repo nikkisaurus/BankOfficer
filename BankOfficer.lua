@@ -28,7 +28,7 @@ end
 function addon:SlashCommandFunc(input)
 	input = strlower(input)
 	if not input or input:trim() == "" then
-		private:OpenOptions()
+		private:OpenOptions(private.db.global.settings.defaultGuild)
 	elseif input == "organize" then
 		private:OrganizeBank()
 	elseif input == "restock" then

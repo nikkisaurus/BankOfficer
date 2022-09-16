@@ -57,7 +57,7 @@ function private:GetGuilds()
 					order = 6,
 					type = "group",
 					name = L["Settings"],
-					args = {},
+					args = private:GetSettingsOptions(guildKey),
 				},
 			},
 		}

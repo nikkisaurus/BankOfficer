@@ -4,4 +4,5 @@
     <Include file="OrganizeGroup.lua"/>
     <Include file="Restock.lua"/>
     <Include file="Review.lua"/>
+    <Include file="Settings.lua"/>
 </Ui>

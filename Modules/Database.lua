@@ -9,8 +9,6 @@ function private:InitializeDatabase()
 			guilds = {},
 			templates = {},
 			settings = {
-				-- defaultGuild = "Born of Blood - Hyjal",
-
 				dateFormat = "%x (%I:%M %p)", -- "%x (%X)"
 				commands = {
 					bo = true,

@@ -30,6 +30,8 @@ local methods = {
 		end
 
 		widget.tabGroup:SetTabs(tabs)
+		widget.tabGroup:ReleaseChildren()
+		widget.tabGroup:SelectTab()
 	end,
 
 	OnWidthSet = function(widget, ...)
