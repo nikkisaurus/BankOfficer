@@ -1,17 +1,10 @@
 local addonName, private = ...
-local addon = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
+local addon =
+	LibStub("AceAddon-3.0"):NewAddon(addonName, "AceBucket-3.0", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 local L = private.L
 LibStub("LibAddonUtils-1.0"):Embed(addon)
 
 private.media = [[INTERFACE/ADDONS/BANKOFFICER/MEDIA/]]
-
-function addon:GUILDBANKFRAME_OPENED()
-	private.bankOpen = true
-end
-
-function addon:GUILDBANKFRAME_CLOSED()
-	private.bankOpen = false
-end
 
 function addon:OnEnable()
 	addon:RegisterEvent("GUILDBANKFRAME_OPENED")
@@ -29,7 +22,7 @@ function addon:OnInitialize()
 end
 
 function addon:PLAYER_ENTERING_WORLD()
-	private:OpenOptions(private.guildKey, "review")
+	private:OpenOptions(private.guildKey, "organize")
 end
 
 function addon:SlashCommandFunc(input)

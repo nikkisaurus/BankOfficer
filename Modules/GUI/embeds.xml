@@ -1,5 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
     <Include file="Options.lua"/>
+    <Include file="Organize.lua"/>
+    <Include file="OrganizeGroup.lua"/>
     <Include file="Restock.lua"/>
     <Include file="Review.lua"/>
 </Ui>

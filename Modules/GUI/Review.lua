@@ -47,7 +47,7 @@ function private:GetReviewOptions(guildKey, scans)
 			order = i,
 			type = "group",
 			name = date(private.db.global.settings.dateFormat, scanID),
-			childGroups = "tab",
+			-- childGroups = "tab",
 			args = {
 				logs = {
 					type = "group",

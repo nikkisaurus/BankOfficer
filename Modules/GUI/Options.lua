@@ -17,28 +17,45 @@ function private:GetGuilds()
 			type = "group",
 			name = guildKey,
 			args = {
-				restock = {
+				scanBank = {
 					order = 1,
+					type = "execute",
+					name = L["Scan"],
+					func = function()
+						private:GetBankRestock()
+					end,
+				},
+				organizeBank = {
+					order = 2,
+					type = "execute",
+					name = L["Organize"],
+					func = function()
+						private:OrganizeBank()
+					end,
+				},
+				restock = {
+					order = 3,
 					type = "group",
 					name = L["Restock"],
 					childGroups = "select",
 					args = private:GetRestockRules(guildKey, guild.restock),
 				},
 				organize = {
-					order = 2,
+					order = 4,
 					type = "group",
 					name = L["Organize"],
-					args = {},
+					-- childGroups = "tab",
+					args = private:GetOrganizeOptions(guildKey, guild.organize),
 				},
 				review = {
-					order = 3,
+					order = 5,
 					type = "group",
 					name = L["Review"],
 					childGroups = "select",
 					args = private:GetReviewOptions(guildKey, guild.scans),
 				},
 				settings = {
-					order = 4,
+					order = 6,
 					type = "group",
 					name = L["Settings"],
 					args = {},
@@ -65,9 +82,12 @@ function private:InitializeOptions()
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, private:GetOptions())
 	private.options = ACR:GetOptionsTable(addonName, "dialog", addonName .. "-1.0")
 	private.frame = AceGUI:Create("Frame")
+	private.organizeContextMenu =
+		CreateFrame("Frame", "BankOfficer_OrganizeContextMenu", UIParent, "UIDropDownMenuTemplate")
 end
 
 function private:OpenOptions(...)
+	private.optionsPath = { ... }
 	ACD:SelectGroup(addonName, ...)
 	ACD:Open(addonName, private.frame)
 end

@@ -4,16 +4,8 @@ local L = private.L
 
 function private:GetRestockRules(guildKey, rules)
 	local options = {
-		scan = {
-			order = 1,
-			type = "execute",
-			name = L["Scan"],
-			func = function()
-				private:GetBankRestock()
-			end,
-		},
 		new = {
-			order = 2,
+			order = 1,
 			type = "execute",
 			name = L["Add Rule"],
 			func = function()
@@ -22,7 +14,7 @@ function private:GetRestockRules(guildKey, rules)
 			end,
 		},
 		remove = {
-			order = 3,
+			order = 2,
 			type = "select",
 			style = "dropdown",
 			name = L["Remove Rule"],

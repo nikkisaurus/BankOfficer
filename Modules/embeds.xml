@@ -3,5 +3,6 @@
     <Include file="GUI\embeds.xml"/>
     <Include file="Database.lua"/>
     <Include file="Helpers.lua"/>
+    <Include file="Organize.lua"/>
     <Include file="Restock.lua"/>
 </Ui>

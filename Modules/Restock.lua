@@ -26,14 +26,18 @@ end
 
 local items = {}
 private.GetBankRestock = function()
+	if not private.bankOpen then
+		return addon:Print(L["Restock canceled: bank frame is not open."])
+	end
+
 	local guild = private.db.global.guilds[private.guildKey]
-	for tab = 1, MAX_GUILDBANK_TABS do
+	for tab = 1, guild.numTabs do
 		QueryGuildBankTab(tab)
 	end
 
 	local scanID = time()
 
-	C_Timer.After(98 * MAX_GUILDBANK_TABS * 0.001, function()
+	C_Timer.After(98 * guild.numTabs * 0.001, function()
 		wipe(items)
 
 		for ruleName, rule in pairs(guild.restock) do
@@ -41,7 +45,7 @@ private.GetBankRestock = function()
 				items[itemID] = rule.quantity
 
 				-- Scan bank for item counts
-				for tab = 1, MAX_GUILDBANK_TABS do
+				for tab = 1, guild.numTabs do
 					for slot = 1, (MAX_GUILDBANK_SLOTS_PER_TAB or 98) do
 						local slotItemID = GetItemInfoInstant(GetGuildBankItemLink(tab, slot) or 0)
 						if slotItemID and slotItemID == itemID then

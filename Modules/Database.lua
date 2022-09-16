@@ -5,8 +5,9 @@ local L = private.L
 function private:InitializeDatabase()
 	private.db = LibStub("AceDB-3.0"):New("BankOfficerDevDB", {
 		global = {
-			debug = true,
+			-- debug = true,
 			guilds = {},
+			templates = {},
 			settings = {
 				-- defaultGuild = "Born of Blood - Hyjal",
 
@@ -37,10 +38,11 @@ function private:InitializeGuild()
 	private.db.global.guilds[private.guildKey] = private.db.global.guilds[private.guildKey]
 		or addon.CloneTable(private.defaults.guild)
 	local tabs = private.db.global.guilds[private.guildKey].tabs
+	private.db.global.guilds[private.guildKey].numTabs = GetNumGuildBankTabs()
 
 	wipe(tabs)
 
-	for tab = 1, MAX_GUILDBANK_TABS do
+	for tab = 1, GetNumGuildBankTabs() do
 		QueryGuildBankTab(tab)
 		C_Timer.After(0.01, function()
 			local name, icon, viewable = GetGuildBankTabInfo(tab)
@@ -56,6 +58,7 @@ private.defaults = {
 		tabs = {},
 		organize = {},
 		restock = {},
+		restockTabs = {},
 		scans = {},
 	},
 	restockRule = {

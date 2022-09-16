@@ -1,9 +1,9 @@
 local addonName, private = ...
-local BankOfficer = LibStub("AceAddon-3.0"):GetAddon(addonName)
+local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = private.L
 local AceGUI = LibStub("AceGUI-3.0")
 
-local Type = "BankOfficerOrganizeSlot"
+local Type = "BankOfficer_OrganizeSlot"
 local Version = 1
 
 local SLOTBUTTON_HIGHLIGHTTEXTURE = [[INTERFACE\BUTTONS\ButtonHilight-Square]]
@@ -12,8 +12,8 @@ local SLOTBUTTON_TEXTURE = [[INTERFACE\ADDONS\BANKOFFICER\MEDIA\UI-SLOT-BACKGROU
 --[[ Locals ]]
 -- Menus
 local function GetEasyMenu(widget)
-	local slotID = widget:GetUserData("slotID")
-	local slotInfo = private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID]
+	local tab = private.db.global.guilds[widget:GetUserData("guildKey")].organize[widget:GetUserData("tab")]
+	local slotInfo = tab and tab[widget:GetUserData("slotID")]
 	local isEmpty = not slotInfo or not slotInfo.itemID
 
 	if isEmpty then
@@ -55,48 +55,46 @@ end
 --[[ Script handlers ]]
 local function frame_onClick(frame, mouseButton)
 	local widget = frame.obj
-	local slotInfo =
-		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
-			"slotID"
-		)]
+	local tab = private.db.global.guilds[widget:GetUserData("guildKey")].organize[widget:GetUserData("tab")]
+	local slotInfo = tab and tab[widget:GetUserData("slotID")]
 	local isEmpty = not slotInfo or not slotInfo.itemID
 
 	if mouseButton == "LeftButton" then
 		local cursorType, itemID = GetCursorInfo()
-		local template = private.db.global.templates[private.status.organize.editMode]
+		local template = private.db.global.templates[private.organizeEditMode]
 
 		if template then
 			widget:UpdateSlotInfo(template)
-		elseif private.status.organize.editMode == "clear" then
+		elseif private.organizeEditMode == "clear" then
 			widget:ClearSlot()
 		elseif cursorType == "item" then
-			if private.status.organize.originSlot then
+			if private.organizeOriginSlot then
 				if isEmpty then
-					private.status.organize.originSlot:ClearSlot()
+					private.organizeOriginSlot:ClearSlot()
 				else
-					private.status.organize.originSlot:UpdateSlotInfo(slotInfo)
+					private.organizeOriginSlot:UpdateSlotInfo(slotInfo)
 				end
 			end
 			widget:LoadCursorItem(itemID)
 		elseif not isEmpty then
-			widget:PickupItem(private.status.organize.editMode == "duplicate")
+			widget:PickupItem(private.organizeEditMode == "duplicate")
 		end
 	elseif mouseButton == "RightButton" then
 		if not isEmpty then
-			private:CacheItem(slotInfo.itemID)
+			addon:CacheItem(slotInfo.itemID, function(itemID, private, widget)
+				EasyMenu(GetEasyMenu(widget), private.organizeContextMenu, widget.frame, 0, 0, "MENU")
+			end, private, widget)
 		end
-		EasyMenu(GetEasyMenu(widget), private.organizeContextMenu, widget.frame, 0, 0, "MENU")
 	end
 end
 
 local function frame_OnDragStart(frame)
 	local widget = frame.obj
-	local slotInfo =
-		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
-			"slotID"
-		)]
+
+	local tab = private.db.global.guilds[widget:GetUserData("guildKey")].organize[widget:GetUserData("tab")]
+	local slotInfo = tab and tab[widget:GetUserData("slotID")]
 	local isEmpty = not slotInfo or not slotInfo.itemID
-	if private.status.organize.editMode or isEmpty then
+	if private.organizeEditMode or isEmpty then
 		return
 	end
 
@@ -105,10 +103,9 @@ end
 
 local function frame_OnEnter(frame)
 	local widget = frame.obj
-	local slotInfo =
-		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
-			"slotID"
-		)]
+
+	local tab = private.db.global.guilds[widget:GetUserData("guildKey")].organize[widget:GetUserData("tab")]
+	local slotInfo = tab and tab[widget:GetUserData("slotID")]
 	local isEmpty = not slotInfo or not slotInfo.itemID
 	local tooltip = private.tooltip
 
@@ -131,23 +128,22 @@ end
 
 local function frame_OnReceiveDrag(frame)
 	local widget = frame.obj
-	local slotInfo =
-		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
-			"slotID"
-		)]
+
+	local tab = private.db.global.guilds[widget:GetUserData("guildKey")].organize[widget:GetUserData("tab")]
+	local slotInfo = tab and tab[widget:GetUserData("slotID")]
 	local isEmpty = not slotInfo or not slotInfo.itemID
-	if private.status.organize.editMode then
+	if private.organizeEditMode then
 		return
 	end
 
 	local cursorType, itemID = GetCursorInfo()
 	if cursorType == "item" then
-		if private.status.organize.originSlot then
+		if private.organizeOriginSlot then
 			if isEmpty then
-				private.status.organize.originSlot:ClearSlot()
+				private.organizeOriginSlot:ClearSlot()
 			else
 				print("Swap")
-				private.status.organize.originSlot:UpdateSlotInfo(slotInfo)
+				private.organizeOriginSlot:UpdateSlotInfo(slotInfo)
 			end
 		end
 		widget:LoadCursorItem(itemID)
@@ -188,13 +184,13 @@ local methods = {
 
 	ClearSlot = function(widget)
 		local slotID = widget:GetUserData("slotID")
-		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][slotID] = nil
-		private.status.organize.originSlot = nil
+		private.db.global.guilds[widget:GetUserData("guildKey")].organize[widget:GetUserData("tab")][slotID] = nil
+		private.organizeOriginSlot = nil
 		widget:LoadSlot()
 	end,
 
 	EditSlot = function(widget)
-		private:EditOrganizeSlot(widget, widget:GetUserData("slotID"))
+		-- private:EditOrganizeSlot(widget, widget:GetUserData("slotID"))
 	end,
 
 	GetSlotTitle = function(widget, slotID)
@@ -202,21 +198,22 @@ local methods = {
 	end,
 
 	LoadCursorItem = function(widget, itemID)
-		local cursorInfo = private.status.organize.duplicateInfo or private.status.organize.cursorInfo
+		local cursorInfo = private.organizeDuplicateInfo or private.organizeCursorInfo
 
 		if cursorInfo then
 			widget:UpdateSlotInfo(cursorInfo)
-			private.status.organize.cursorInfo = nil
+			private.organizeCursorInfo = nil
 		else
-			private:CacheItem(itemID)
-			local _, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(itemID)
+			addon:CacheItem(itemID, function(itemID, private, widget)
+				local _, _, _, _, _, _, _, _, _, _, _, _, _, bindType = GetItemInfo(itemID)
 
-			if bindType and bindType ~= 1 then
-				widget:UpdateSlotInfo({ itemID = itemID, stack = private.stack })
-			end
+				if bindType and bindType ~= 1 then
+					widget:UpdateSlotInfo({ itemID = itemID, stack = private.defaults.stack })
+				end
+			end, private, widget)
 		end
 
-		if private.status.organize.editMode ~= "duplicate" then
+		if private.organizeEditMode ~= "duplicate" then
 			ClearCursor()
 		end
 
@@ -224,13 +221,11 @@ local methods = {
 	end,
 
 	LoadSlot = function(widget)
-		if not private.status.organize.guildKey or not private.status.organize.tab then
+		if not widget:GetUserData("guildKey") or not widget:GetUserData("tab") then
 			return
 		end
-		local slotInfo =
-			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
-				"slotID"
-			)]
+		local tab = private.db.global.guilds[widget:GetUserData("guildKey")].organize[widget:GetUserData("tab")]
+		local slotInfo = tab and tab[widget:GetUserData("slotID")]
 		local isEmpty = not slotInfo or not slotInfo.itemID
 
 		-- Set icon
@@ -251,31 +246,36 @@ local methods = {
 	end,
 
 	PickupItem = function(widget, duplicate)
-		local slotInfo =
-			private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
-				"slotID"
-			)]
+		local tab = private.db.global.guilds[widget:GetUserData("guildKey")].organize[widget:GetUserData("tab")]
+		local slotInfo = tab and tab[widget:GetUserData("slotID")]
 		local isEmpty = not slotInfo or not slotInfo.itemID
 		if isEmpty then
 			return
 		end
 
-		if duplicate and not private.status.organize.duplicateInfo then
-			private.status.organize.duplicateInfo = BankOfficer.CloneTable(slotInfo)
+		if duplicate and not private.organizeDuplicateInfo then
+			private.organizeDuplicateInfo = addon.CloneTable(slotInfo)
 		end
 
 		PickupItem(slotInfo.itemID)
-		private.status.organize.cursorInfo = private.status.organize.duplicateInfo or slotInfo
+		private.organizeCursorInfo = private.organizeDuplicateInfo or slotInfo
 
 		widget.image:SetDesaturated(not duplicate)
-		private.status.organize.originSlot = not duplicate and widget
+		private.organizeOriginSlot = not duplicate and widget
 	end,
 
+	SetLabel = function(widget) end,
+
+	SetText = function(widget) end,
+
 	UpdateSlotInfo = function(widget, info)
-		private.db.global.organize[private.status.organize.guildKey][private.status.organize.tab][widget:GetUserData(
+		if not private.db.global.guilds[widget:GetUserData("guildKey")].organize[widget:GetUserData("tab")] then
+			private.db.global.guilds[widget:GetUserData("guildKey")].organize[widget:GetUserData("tab")] = {}
+		end
+		private.db.global.guilds[widget:GetUserData("guildKey")].organize[widget:GetUserData("tab")][widget:GetUserData(
 			"slotID"
 		)] =
-			BankOfficer.CloneTable(info)
+			addon.CloneTable(info)
 		widget:LoadSlot()
 	end,
 }
@@ -287,8 +287,8 @@ local function Constructor()
 	frame:SetText(" ")
 	frame:SetPushedTextOffset(0, 0)
 	frame:SetScript("OnClick", frame_onClick)
-	frame:SetScript("OnEnter", frame_OnEnter)
-	frame:SetScript("OnLeave", frame_OnLeave)
+	-- frame:SetScript("OnEnter", frame_OnEnter)
+	-- frame:SetScript("OnLeave", frame_OnLeave)
 
 	frame:SetMovable(true)
 	frame:RegisterForDrag("LeftButton")
@@ -298,8 +298,8 @@ local function Constructor()
 	frame:SetNormalTexture(SLOTBUTTON_TEXTURE)
 	frame:SetHighlightTexture(SLOTBUTTON_HIGHLIGHTTEXTURE)
 
-	if not BankOfficer:IsHooked("ClearCursor") then
-		BankOfficer:SecureHook("ClearCursor", function()
+	if not addon:IsHooked("ClearCursor") then
+		addon:SecureHook("ClearCursor", function()
 			local numSlots = AceGUI:GetWidgetCount(Type)
 			for i = 1, numSlots do
 				local button = _G[Type .. i]
@@ -307,7 +307,7 @@ local function Constructor()
 					button.obj.image:SetDesaturated(false)
 				end
 			end
-			private.status.organize.duplicateInfo = nil
+			private.organizeDuplicateInfo = nil
 		end)
 	end
 
