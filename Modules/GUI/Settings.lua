@@ -3,6 +3,8 @@ local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = private.L
 
 function private:GetSettingsOptions(guildKey)
+    local guild = private.db.global.guilds[guildKey]
+
     local options = {
         defaultGuild = {
             order = 1,

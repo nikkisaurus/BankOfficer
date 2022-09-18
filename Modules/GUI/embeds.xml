@@ -2,6 +2,7 @@
     <Include file="Options.lua"/>
     <Include file="Organize.lua"/>
     <Include file="Restock.lua"/>
-    <Include file="Review.lua"/>
+    <Include file="Rules.lua"/>
+    <Include file="Scans.lua"/>
     <Include file="Settings.lua"/>
 </Ui>

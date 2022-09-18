@@ -64,6 +64,15 @@ function private:GetBankScan()
                     end
                 end
 
+                -- Scan money transactions
+                -- Money transactions
+                QueryGuildBankLog(MAX_GUILDBANK_TABS + 1)
+                local totalMoney = GetGuildBankMoney()
+                logs[MAX_GUILDBANK_TABS + 1] = {}
+                for i = 1, GetNumGuildBankMoneyTransactions() do
+                    tinsert(logs[MAX_GUILDBANK_TABS + 1], AceSerializer:Serialize(GetGuildBankMoneyTransaction(i)))
+                end
+
                 -- Remove items from list if min stock is already met
                 if restocks[itemID] <= 0 then
                     restocks[itemID] = nil
@@ -77,10 +86,11 @@ function private:GetBankScan()
         end
 
         private.db.global.guilds[private.guildKey].scans[scanID] = {
+            checked = {},
+            items = addon.CloneTable(items),
             logs = addon.CloneTable(logs),
             restocks = addon.CloneTable(restocks),
-            items = addon.CloneTable(items),
-            checked = {},
+            totalMoney = totalMoney,
         }
         addon:Print(format(L["Scan finished: %d restocks."], numRestocks))
 

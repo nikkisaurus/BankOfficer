@@ -33,29 +33,22 @@ function private:GetGuilds()
                         private:OrganizeBank()
                     end,
                 },
-                restock = {
+                rules = {
                     order = 3,
                     type = "group",
-                    name = L["Restock"],
-                    childGroups = "select",
-                    args = private:GetRestockRules(guildKey, guild.restock),
-                },
-                organize = {
-                    order = 4,
-                    type = "group",
-                    name = L["Organize"],
+                    name = L["Rules"],
                     childGroups = "tab",
-                    args = private:GetOrganizeOptions(guildKey, guild.organize),
+                    args = private:GetRulesOptions(guildKey),
                 },
-                review = {
-                    order = 5,
+                scans = {
+                    order = 3,
                     type = "group",
-                    name = L["Review"],
+                    name = L["Scans"],
                     childGroups = "select",
-                    args = private:GetReviewOptions(guildKey, guild.scans),
+                    args = private:GetScansOptions(guildKey, guild.scans),
                 },
                 settings = {
-                    order = 6,
+                    order = 4,
                     type = "group",
                     name = L["Settings"],
                     args = private:GetSettingsOptions(guildKey),

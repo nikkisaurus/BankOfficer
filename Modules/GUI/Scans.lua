@@ -2,7 +2,7 @@ local addonName, private = ...
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local L = private.L
 
-function private:GetReviewOptions(guildKey, scans)
+function private:GetScansOptions(guildKey, scans)
     local options = {
         delete = {
             order = 1,
@@ -36,7 +36,7 @@ function private:GetReviewOptions(guildKey, scans)
             set = function(_, value)
                 value = tonumber(value)
                 private.db.global.guilds[guildKey].scans[value] = nil
-                private:RefreshOptions(guildKey, "review")
+                private:RefreshOptions(guildKey, "scans")
             end,
         },
     }
@@ -50,19 +50,20 @@ function private:GetReviewOptions(guildKey, scans)
         options["scan" .. scanID] = {
             order = i,
             type = "group",
+            childGroups = "tab",
             name = date(private.db.global.settings.dateFormat, scanID),
             args = {
-                logs = {
+                analyze = {
                     order = 1,
                     type = "group",
-                    name = L["Logs"],
+                    name = L["Analyze"],
                     childGroups = "tab",
                     args = {},
                 },
-                analyze = {
+                logs = {
                     order = 2,
                     type = "group",
-                    name = L["Analyze"],
+                    name = L["Logs"],
                     childGroups = "tab",
                     args = {},
                 },
@@ -83,9 +84,19 @@ function private:GetReviewOptions(guildKey, scans)
         i = i + 1
 
         for tab, transactions in pairs(scan.logs) do
+            local name
+            if private.db.global.guilds[guildKey].tabs[tab] then
+                name = private.db.global.guilds[guildKey].tabs[tab].name
+            elseif tab == 9 then
+                name = L["Money"]
+            else
+                name = L["Tab"] .. " " .. tab
+            end
+
             options["scan" .. scanID].args.logs.args["tab" .. tab] = {
+                order = tab,
                 type = "group",
-                name = L["Tab"] .. " " .. tab,
+                name = name,
                 args = {},
             }
 
@@ -94,7 +105,8 @@ function private:GetReviewOptions(guildKey, scans)
                     return a > b
                 end)
             do
-                local name = private:GetTransactionLabel(scanID, transaction)
+                local name = tab == 9 and private:GetMoneyTransactionLabel(scanID, transaction)
+                    or private:GetTransactionLabel(guildKey, scanID, transaction)
                 options["scan" .. scanID].args.logs.args["tab" .. tab].args["transaction" .. transactionID] = {
                     type = "description",
                     name = name,

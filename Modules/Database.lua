@@ -5,7 +5,7 @@ local L = private.L
 function private:InitializeDatabase()
     private.db = LibStub("AceDB-3.0"):New("BankOfficerDevDB", {
         global = {
-            debug = true,
+            -- debug = true,
             guilds = {},
             templates = {},
             settings = {
@@ -43,14 +43,14 @@ function private:InitializeGuild()
     local tabs = private.db.global.guilds[private.guildKey].tabs
     private.db.global.guilds[private.guildKey].numTabs = GetNumGuildBankTabs()
 
-    wipe(tabs)
+    -- wipe(tabs)
 
     for tab = 1, GetNumGuildBankTabs() do
         QueryGuildBankTab(tab)
         C_Timer.After(0.01, function()
             local name, icon, viewable = GetGuildBankTabInfo(tab)
             if name then
-                tabs[tab] = { name, icon, viewable }
+                private.db.global.guilds[private.guildKey].tabs[tab] = { name = name, icon = icon, viewable = viewable }
             end
         end)
     end

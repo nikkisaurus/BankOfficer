@@ -106,7 +106,7 @@ function private:GetTransactionInfo(transaction)
     return info
 end
 
-function private:GetTransactionLabel(scanID, transaction)
+function private:GetTransactionLabel(guildKey, scanID, transaction)
     local info = private:GetTransactionInfo(transaction)
     if not info then
         return
@@ -127,7 +127,18 @@ function private:GetTransactionLabel(scanID, transaction)
             msg = msg .. format(GUILDBANK_LOG_QUANTITY, info.count)
         end
     elseif info.transactionType == "move" then
-        msg = format(GUILDBANK_MOVE_FORMAT, info.name, info.itemLink, info.count, info.moveOrigin, info.moveDestination) -- TODO: Get tab name
+        msg = format(
+            GUILDBANK_MOVE_FORMAT,
+            info.name,
+            info.itemLink,
+            info.count,
+            private.db.global.guilds[guildKey].tabs[info.moveOrigin]
+                    and private.db.global.guilds[guildKey].tabs[info.moveOrigin].name
+                or info.moveOrigin,
+            private.db.global.guilds[guildKey].tabs[info.moveDestination]
+                    and private.db.global.guilds[guildKey].tabs[info.moveDestination].name
+                or info.moveDestination
+        ) -- TODO: Get tab name
     end
 
     local recentDate = RecentTimeDate(info.year, info.month, info.day, info.hour)

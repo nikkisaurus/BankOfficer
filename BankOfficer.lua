@@ -22,7 +22,7 @@ function addon:OnInitialize()
 end
 
 function addon:PLAYER_ENTERING_WORLD()
-    private:OpenOptions(private.guildKey, "review")
+    private:OpenOptions(private.guildKey, "scans")
 end
 
 function addon:SlashCommandFunc(input)
