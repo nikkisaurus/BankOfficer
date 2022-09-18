@@ -5,4 +5,6 @@
     <Include file="Helpers.lua"/>
     <Include file="Organize.lua"/>
     <Include file="Restock.lua"/>
+    <Include file="Review.lua"/>
+    <Include file="Scan.lua"/>
 </Ui>

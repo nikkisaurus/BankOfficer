@@ -125,7 +125,7 @@ function private:GetRestockRuleIDs(guildKey, ruleName)
                 addon.CacheItem(value, function(itemID)
                     tinsert(private.db.global.guilds[guildKey].restock[ruleName].ids, itemID)
                     private:RefreshOptions()
-                end, value)
+                end)
             end,
         },
     }

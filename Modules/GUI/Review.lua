@@ -51,19 +51,29 @@ function private:GetReviewOptions(guildKey, scans)
             order = i,
             type = "group",
             name = date(private.db.global.settings.dateFormat, scanID),
-            -- childGroups = "tab",
             args = {
                 logs = {
+                    order = 1,
                     type = "group",
                     name = L["Logs"],
+                    childGroups = "tab",
+                    args = {},
+                },
+                analyze = {
+                    order = 2,
+                    type = "group",
+                    name = L["Analyze"],
+                    childGroups = "tab",
                     args = {},
                 },
                 restock = {
+                    order = 3,
                     type = "group",
                     name = L["Restock"],
                     args = {},
                 },
                 stocked = {
+                    order = 4,
                     type = "group",
                     name = L["Stocked"],
                     args = {},
@@ -72,7 +82,26 @@ function private:GetReviewOptions(guildKey, scans)
         }
         i = i + 1
 
-        local sorted = {}
+        for tab, transactions in pairs(scan.logs) do
+            options["scan" .. scanID].args.logs.args["tab" .. tab] = {
+                type = "group",
+                name = L["Tab"] .. " " .. tab,
+                args = {},
+            }
+
+            for transactionID, transaction in
+                addon.pairs(transactions, function(a, b)
+                    return a > b
+                end)
+            do
+                local name = private:GetTransactionLabel(scanID, transaction)
+                options["scan" .. scanID].args.logs.args["tab" .. tab].args["transaction" .. transactionID] = {
+                    type = "description",
+                    name = name,
+                }
+            end
+        end
+
         for itemID, quantity in pairs(scan.restocks) do
             addon.CacheItem(itemID, function(itemID, options, quantity)
                 local itemName, itemLink = GetItemInfo(itemID)

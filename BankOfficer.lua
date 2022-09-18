@@ -22,7 +22,7 @@ function addon:OnInitialize()
 end
 
 function addon:PLAYER_ENTERING_WORLD()
-    private:OpenOptions(private.guildKey, "organize")
+    private:OpenOptions(private.guildKey, "review")
 end
 
 function addon:SlashCommandFunc(input)
@@ -32,7 +32,7 @@ function addon:SlashCommandFunc(input)
     elseif input == "organize" then
         private:OrganizeBank()
     elseif input == "restock" then
-        private:GetBankRestock()
+        private:GetBankScan()
     end
 end
 

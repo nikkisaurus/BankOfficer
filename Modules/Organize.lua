@@ -68,34 +68,36 @@ function addon:GUILDBANKBAGSLOTS_CHANGED()
                         or targetItemCount < GetStack()
                     then
                         -- Restock
-                        for sourceTab, _ in pairs(private.db.global.guilds[private.guildKey].restockTabs) do
-                            QueryGuildBankTab(sourceTab)
-                            for sourceSlot = 1, 98 do
-                                local sourceItemID =
-                                    private:ValidateItem(GetGuildBankItemLink(sourceTab, sourceSlot) or 0)
-                                if
-                                    sourceItemID
-                                    and not (private.db.global.guilds[private.guildKey].organize[sourceTab] and private.db.global.guilds[private.guildKey].organize[sourceTab][sourceSlot])
-                                    and sourceItemID == slotDB.itemID
-                                then
-                                    local _, sourceItemCount = GetGuildBankItemInfo(sourceTab, sourceSlot)
+                        for sourceTab, enabled in pairs(private.db.global.guilds[private.guildKey].restockTabs) do
+                            if enabled == true then
+                                QueryGuildBankTab(sourceTab)
+                                for sourceSlot = 1, 98 do
+                                    local sourceItemID =
+                                        GetItemInfoInstant(GetGuildBankItemLink(sourceTab, sourceSlot) or 0)
+                                    if
+                                        sourceItemID
+                                        and not (private.db.global.guilds[private.guildKey].organize[sourceTab] and private.db.global.guilds[private.guildKey].organize[sourceTab][sourceSlot])
+                                        and sourceItemID == slotDB.itemID
+                                    then
+                                        local _, sourceItemCount = GetGuildBankItemInfo(sourceTab, sourceSlot)
 
-                                    if sourceItemCount == stockNeeded then
-                                        PickupGuildBankItem(sourceTab, sourceSlot)
-                                        PickupGuildBankItem(targetTab, targetSlot)
-                                        stocked[targetTab .. ":" .. targetSlot] = true
-                                        if queryNext then
-                                            QueryGuildBankTab(private.queryTab)
+                                        if sourceItemCount > stockNeeded then
+                                            SplitGuildBankItem(sourceTab, sourceSlot, stockNeeded)
+                                            PickupGuildBankItem(targetTab, targetSlot)
+                                            stocked[targetTab .. ":" .. targetSlot] = true
+                                            if queryNext then
+                                                QueryGuildBankTab(private.queryTab)
+                                            end
+                                            return
+                                        else
+                                            PickupGuildBankItem(sourceTab, sourceSlot)
+                                            PickupGuildBankItem(targetTab, targetSlot)
+                                            stocked[targetTab .. ":" .. targetSlot] = true
+                                            if queryNext then
+                                                QueryGuildBankTab(private.queryTab)
+                                            end
+                                            return
                                         end
-                                        return
-                                    elseif sourceItemCount > stockNeeded then
-                                        SplitGuildBankItem(sourceTab, sourceSlot, stockNeeded)
-                                        PickupGuildBankItem(targetTab, targetSlot)
-                                        stocked[targetTab .. ":" .. targetSlot] = true
-                                        if queryNext then
-                                            QueryGuildBankTab(private.queryTab)
-                                        end
-                                        return
                                     end
                                 end
                             end

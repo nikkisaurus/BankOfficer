@@ -22,7 +22,7 @@ function private:GetGuilds()
                     type = "execute",
                     name = L["Scan"],
                     func = function()
-                        private:GetBankRestock()
+                        private:GetBankScan()
                     end,
                 },
                 organizeBank = {
@@ -83,6 +83,8 @@ function private:InitializeOptions()
     private.options = ACR:GetOptionsTable(addonName, "dialog", addonName .. "-1.0")
     ACD:SetDefaultSize(addonName, 900, 700)
     private.frame = AceGUI:Create("Frame")
+    _G["BankOfficerFrame"] = private.frame.frame
+    tinsert(UISpecialFrames, "BankOfficerFrame")
     private.frame:Hide()
     private.organizeContextMenu =
         CreateFrame("Frame", "BankOfficer_OrganizeContextMenu", UIParent, "UIDropDownMenuTemplate")

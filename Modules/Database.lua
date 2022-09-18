@@ -10,6 +10,11 @@ function private:InitializeDatabase()
             templates = {},
             settings = {
                 dateFormat = "%x (%I:%M %p)", -- "%x (%X)"
+                dateType = "default", -- "default", "approx"
+                defaultGuild = false, -- guildID
+                guildFormat = "%g - %r (%F)",
+                exportDelimiter = ",",
+
                 commands = {
                     bo = true,
                     bankofficer = true,
